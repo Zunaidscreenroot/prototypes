@@ -52,7 +52,9 @@ export default function PrototypeOne() {
   }, [edelweiss, axisGold, axisSilver, baseAmount, mode, oneTimeAmount]);
 
   const selectedCount = Number(edelweiss) + Number(axisGold) + Number(axisSilver);
-  const sipMinimum = Math.max(100, selectedCount * 100);
+  const frequencyMinimum = frequency === "Daily" ? 100 : frequency === "Weekly" ? 1000 : 5000;
+  const sipMinimum = Math.max(frequencyMinimum, selectedCount * 100);
+  const sipStep = frequency === "Daily" ? 100 : frequency === "Weekly" ? 1000 : 5000;
   const total = mode === "oneTime"
     ? oneTimeAmount
     : baseAmount;
@@ -121,7 +123,7 @@ export default function PrototypeOne() {
             <button
               onClick={() => mode === "oneTime"
                 ? setOneTimeAmount(v => Math.max(1000, v - 1000))
-                : setBaseAmount(v => Math.max(sipMinimum, v - 100))}
+                : setBaseAmount(v => Math.max(sipMinimum, v - sipStep))}
               disabled={mode === "oneTime" ? oneTimeAmount <= 1000 : baseAmount <= sipMinimum}
             >−</button>
 
@@ -141,10 +143,10 @@ export default function PrototypeOne() {
                 className="amount-input"
                 type="number"
                 min={sipMinimum}
-                max="3000"
-                step="100"
+                max="300000"
+                step={sipStep}
                 value={baseAmount}
-                onChange={e => setBaseAmount(Math.max(sipMinimum, Math.min(3000, Number(e.target.value) || sipMinimum)))}
+                onChange={e => setBaseAmount(Math.max(sipMinimum, Math.min(300000, Number(e.target.value) || sipMinimum)))}
                 aria-label="SIP amount"
               />
             )}
@@ -152,13 +154,16 @@ export default function PrototypeOne() {
             <button
               onClick={() => mode === "oneTime"
                 ? setOneTimeAmount(v => Math.min(300000, v + 1000))
-                : setBaseAmount(v => Math.min(3000, v + 100))}
+                : setBaseAmount(v => Math.min(300000, v + sipStep))}
               disabled={mode === "oneTime" ? oneTimeAmount >= 300000 : baseAmount >= 3000}
             >+</button>
           </div>
 
           <div className="presets">
-            {(mode === "oneTime" ? [1000, 5000, 10000, 15000, 20000] : presets).map(value => (
+            {(mode === "oneTime"
+              ? [1000, 5000, 10000, 15000, 20000]
+              : [sipMinimum, sipMinimum + sipStep, sipMinimum + sipStep * 2, sipMinimum + sipStep * 4, sipMinimum + sipStep * 9]
+            ).map(value => (
               <button
                 key={value}
                 className={(mode === "oneTime" ? oneTimeAmount === value : baseAmount === value) ? "preset selected" : "preset"}
@@ -175,8 +180,8 @@ export default function PrototypeOne() {
             className="range"
             type="range"
             min={mode === "oneTime" ? 1000 : sipMinimum}
-            max={mode === "oneTime" ? 300000 : 3000}
-            step={mode === "oneTime" ? 1000 : 100}
+            max={mode === "oneTime" ? 300000 : 300000}
+            step={mode === "oneTime" ? 1000 : sipStep}
             value={mode === "oneTime" ? oneTimeAmount : baseAmount}
             onChange={e => mode === "oneTime"
               ? setOneTimeAmount(Number(e.target.value))
@@ -186,14 +191,19 @@ export default function PrototypeOne() {
 
           <div className="range-labels">
             <span>₹{mode === "oneTime" ? "1,000" : sipMinimum.toLocaleString("en-IN")}</span>
-            <span>₹{mode === "oneTime" ? "3,00,000" : "3,000"}</span>
+            <span>₹{mode === "oneTime" ? "3,00,000" : "3,00,000"}</span>
           </div>
 
           {mode === "sip" && (
           <select
             className="frequency"
             value={frequency}
-            onChange={e => setFrequency(e.target.value)}
+            onChange={e => {
+              const nextFrequency = e.target.value;
+              const nextMinimum = nextFrequency === "Daily" ? 100 : nextFrequency === "Weekly" ? 1000 : 5000;
+              setFrequency(nextFrequency);
+              setBaseAmount(v => Math.max(nextMinimum, selectedCount * 100, v));
+            }}
           >
             <option>Daily</option>
             <option>Weekly</option>
@@ -265,7 +275,7 @@ export default function PrototypeOne() {
                     {allocation.filter(item => item.amount > 0).map(item => (
                       <div className="allocation" key={item.label}>
                         <span>{item.label} - {item.percent.toFixed(2).replace(/\.00$/, "")}%</span>
-                        <b>₹{item.amount.toFixed(2)}/{mode === "oneTime" ? "one-time" : frequency.toLowerCase()}</b>
+                        <b>₹{item.amount.toFixed(2)}{mode === "sip" ? `/${frequency.toLowerCase()}` : ""}</b>
                       </div>
                     ))}
                   </div>
