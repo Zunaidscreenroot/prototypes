@@ -38,7 +38,7 @@ export default function PrototypeOne() {
     setAmount(v => Math.min(3000, Math.max(100, v + delta)));
 
   return (
-    <main className="sip-page">
+    <main className="sip-page"><div className="screenroot-label">SCREENROOT · PROTOTYPE TESTS</div>
       <div className="phone">
         <header className="sip-header">
           <button className="back" aria-label="Back">←</button>
