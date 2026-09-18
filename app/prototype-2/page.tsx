@@ -35,15 +35,20 @@ export default function PrototypeTwo() {
   const selected = investments.find(item => item.id === selectedId) ?? investments[0];
   const [withdrawPercent, setWithdrawPercent] = useState(50);
   const [dark, setDark] = useState(false);
+  const [manualAmount, setManualAmount] = useState(9750);
 
   const withdrawAmount = useMemo(
     () => Math.round(selected.balance * withdrawPercent / 100),
     [selected, withdrawPercent]
   );
 
+  const displayedAmount = manualAmount;
+  const manualPercent = Math.max(0, Math.min(100, (manualAmount / selected.balance) * 100));
+
   const selectInvestment = (id: string) => {
     setSelectedId(id);
     setWithdrawPercent(50);
+    setManualAmount(Math.round(selected.balance * 0.5));
   };
 
   return (
@@ -82,9 +87,22 @@ export default function PrototypeTwo() {
           <p className="withdraw-label">I want to withdraw</p>
 
           <div className="withdraw-amount">
-            <button onClick={() => setWithdrawPercent(p => Math.max(0, p - 5))}>−</button>
-            <strong>₹{withdrawAmount.toLocaleString("en-IN")}</strong>
-            <button onClick={() => setWithdrawPercent(p => Math.min(100, p + 5))}>+</button>
+            <button onClick={() => { const next = Math.max(0, withdrawPercent - 5); setWithdrawPercent(next); setManualAmount(Math.round(selected.balance * next / 100)); }}>−</button>
+            <input
+              className="withdraw-amount-input"
+              type="number"
+              min="0"
+              max={selected.balance}
+              step="1"
+              value={displayedAmount}
+              onChange={e => {
+                const amount = Math.max(0, Math.min(selected.balance, Number(e.target.value) || 0));
+                setManualAmount(amount);
+                setWithdrawPercent(Math.round((amount / selected.balance) * 100 / 5) * 5);
+              }}
+              aria-label="Manual withdrawal amount"
+            />
+            <button onClick={() => { const next = Math.min(100, withdrawPercent + 5); setWithdrawPercent(next); setManualAmount(Math.round(selected.balance * next / 100)); }}>+</button>
           </div>
 
           <div className="withdraw-presets">
@@ -94,7 +112,7 @@ export default function PrototypeTwo() {
                 <button
                   key={percent}
                   className={withdrawPercent === percent ? "withdraw-preset selected" : "withdraw-preset"}
-                  onClick={() => setWithdrawPercent(percent)}
+                  onClick={() => { setWithdrawPercent(percent); setManualAmount(amount); }}
                 >
                   ₹{amount.toLocaleString("en-IN")} ({percent}%)
                 </button>
@@ -110,7 +128,7 @@ export default function PrototypeTwo() {
             step="5"
             value={withdrawPercent}
             style={{ "--withdraw-progress": `${withdrawPercent}%` } as React.CSSProperties}
-            onChange={e => setWithdrawPercent(Number(e.target.value))}
+            onChange={e => { const percent = Number(e.target.value); setWithdrawPercent(percent); setManualAmount(Math.round(selected.balance * percent / 100)); }}
             aria-label="Withdrawal percentage"
           />
 

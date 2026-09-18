@@ -37,3 +37,9 @@ button,input{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:tran
 .withdraw-page.dark .bank-icon{background:#3b3c43;color:#c5c5cc}
 .withdraw-page.dark .withdraw-button{background:#66647f;color:#fff}
 .withdraw-page.dark .withdraw-theme-toggle{background:#27282d;color:#fff;border-color:#55565e}
+
+.withdraw-amount-input{width:145px;min-width:145px;border:0;background:transparent;color:#222;text-align:center;font-size:29px;font-weight:500;letter-spacing:-.045em;outline:none;padding:0}
+.withdraw-amount-input::-webkit-inner-spin-button,.withdraw-amount-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.withdraw-amount-input[type=number]{-moz-appearance:textfield}
+.withdraw-page.dark .withdraw-amount-input{color:#f1f1f3}
+.withdraw-page.dark .withdraw-amount-input::selection{background:#66647f}
