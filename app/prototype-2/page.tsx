@@ -41,19 +41,25 @@ export default function PrototypeTwo() {
   const [withdrawPercent, setWithdrawPercent] = useState(50);
   const [dark, setDark] = useState(false);
   const [manualAmount, setManualAmount] = useState(9750);
+  const [manualInput, setManualInput] = useState("9750");
 
   const withdrawAmount = useMemo(
     () => Math.round(selected.balance * withdrawPercent / 100),
     [selected, withdrawPercent]
   );
 
-  const displayedAmount = formatAmount(manualAmount);
+  const displayedAmount = manualInput === "" ? "" : formatAmount(manualAmount);
+  const withdrawalError = manualInput === "" || manualAmount < MIN_WITHDRAWAL
+    ? `Minimum withdrawal is ₹${formatAmount(MIN_WITHDRAWAL)}`
+    : "";
 
   const selectInvestment = (id: string) => {
     setSelectedId(id);
     setWithdrawPercent(50);
     const nextInvestment = investments.find(item => item.id === id) ?? investments[0];
-    setManualAmount(Math.round(nextInvestment.balance * 0.5));
+    const nextAmount = Math.round(nextInvestment.balance * 0.5);
+    setManualAmount(nextAmount);
+    setManualInput(String(nextAmount));
   };
 
   return (
@@ -92,21 +98,25 @@ export default function PrototypeTwo() {
           <p className="withdraw-label">I want to withdraw</p>
 
           <div className="withdraw-amount">
-            <button onClick={() => { const next = Math.max(MIN_WITHDRAWAL, manualAmount - 100); setManualAmount(next); setWithdrawPercent((next / selected.balance) * 100); }}>−</button>
+            <button onClick={() => { const next = Math.max(MIN_WITHDRAWAL, manualAmount - 100); setManualAmount(next); setManualInput(String(next)); setWithdrawPercent((next / selected.balance) * 100); }}>−</button>
             <input
               className="withdraw-amount-input"
               type="text"
               inputMode="numeric"
               value={displayedAmount}
               onChange={e => {
-                const amount = Math.max(MIN_WITHDRAWAL, Math.min(selected.balance, parseAmount(e.target.value) || MIN_WITHDRAWAL));
+                const raw = e.target.value.replace(/[^0-9]/g, "");
+                const amount = Math.min(selected.balance, parseAmount(raw));
+                setManualInput(raw);
                 setManualAmount(amount);
                 setWithdrawPercent((amount / selected.balance) * 100);
               }}
               aria-label="Manual withdrawal amount"
             />
-            <button onClick={() => { const next = Math.min(selected.balance, manualAmount + 100); setManualAmount(next); setWithdrawPercent((next / selected.balance) * 100); }}>+</button>
+            <button onClick={() => { const next = Math.min(selected.balance, manualAmount + 100); setManualAmount(next); setManualInput(String(next)); setWithdrawPercent((next / selected.balance) * 100); }}>+</button>
           </div>
+
+          {withdrawalError && <div className="withdraw-error">{withdrawalError}</div>}
 
           <div className="withdraw-presets">
             {percentages.map(percent => {
@@ -115,7 +125,7 @@ export default function PrototypeTwo() {
                 <button
                   key={percent}
                   className={withdrawPercent === percent ? "withdraw-preset selected" : "withdraw-preset"}
-                  onClick={() => { setWithdrawPercent(percent); setManualAmount(amount); }}
+                  onClick={() => { setWithdrawPercent(percent); setManualAmount(amount); setManualInput(String(amount)); }}
                 >
                   ₹{formatAmount(amount)} ({percent}%)
                 </button>
@@ -132,7 +142,7 @@ export default function PrototypeTwo() {
             value={manualAmount}
             style={{ "--withdraw-progress": (manualAmount / selected.balance * 100) + "%" } as React.CSSProperties}
             onChange={e => {
-              const amount = Math.max(MIN_WITHDRAWAL, Math.min(selected.balance, Number(e.target.value)));
+              const amount = Math.min(selected.balance, Number(e.target.value));
               setManualAmount(amount);
               setWithdrawPercent((amount / selected.balance) * 100);
             }}
@@ -148,7 +158,7 @@ export default function PrototypeTwo() {
         <section className="withdraw-footer">
           <div className="tax-pill">Tax calculation &amp; exit fees <span>i</span></div>
           <p>Transferring to <span className="bank-icon">▲</span> <strong>AXIS Bank • 21756</strong></p>
-          <button className="withdraw-button" disabled={manualAmount < MIN_WITHDRAWAL}
+          <button className="withdraw-button" disabled={!!withdrawalError}
             onClick={() => alert(`Withdraw ₹${formatAmount(manualAmount)}`)}>
             Withdraw ₹{formatAmount(manualAmount)}
           </button>

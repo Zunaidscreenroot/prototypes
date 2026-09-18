@@ -44,6 +44,8 @@ export default function PrototypeOne() {
   const [mode, setMode] = useState<"sip" | "oneTime">("sip");
   const [dark, setDark] = useState(false);
   const [oneTimeAmount, setOneTimeAmount] = useState(45000);
+  const [oneTimeInput, setOneTimeInput] = useState("45000");
+  const [sipInput, setSipInput] = useState("100");
 
   const selected = useMemo(() => {
     const keys: FundKey[] = [];
@@ -65,6 +67,14 @@ export default function PrototypeOne() {
   const total = mode === "oneTime"
     ? oneTimeAmount
     : baseAmount;
+  const minimumAmount = mode === "oneTime" ? 1000 : sipMinimum;
+  const currentInput = mode === "oneTime" ? oneTimeInput : sipInput;
+  const currentInputAmount = parseAmount(currentInput);
+  const amountError = currentInput !== "" && currentInputAmount < minimumAmount
+    ? `Minimum amount is ₹${formatAmount(minimumAmount)}`
+    : currentInput === ""
+      ? `Minimum amount is ₹${formatAmount(minimumAmount)}`
+      : "";
 
   const goldAmount = selected.reduce(
     (sum, item) => sum + item.amount * funds[item.key].gold / 100,
@@ -82,9 +92,12 @@ export default function PrototypeOne() {
   const setPreset = (value: number) => {
     if (mode === "oneTime") {
       setOneTimeAmount(value);
+      setOneTimeInput(String(value));
       return;
     }
-    setBaseAmount(Math.min(sipMaximum, Math.max(sipMinimum, value)));
+    const next = Math.min(sipMaximum, Math.max(sipMinimum, value));
+    setBaseAmount(next);
+    setSipInput(String(next));
   };
 
   const toggleFund = (key: FundKey) => {
@@ -130,8 +143,8 @@ export default function PrototypeOne() {
           <div className="amount-control">
             <button
               onClick={() => mode === "oneTime"
-                ? setOneTimeAmount(v => Math.max(1000, v - 1000))
-                : setBaseAmount(v => Math.max(sipMinimum, v - sipStep))}
+                ? (() => { const next = Math.max(1000, oneTimeAmount - 1000); setOneTimeAmount(next); setOneTimeInput(String(next)); })()
+                : (() => { const next = Math.max(sipMinimum, baseAmount - sipStep); setBaseAmount(next); setSipInput(String(next)); })()}
               disabled={mode === "oneTime" ? oneTimeAmount <= 1000 : baseAmount <= sipMinimum}
             >−</button>
 
@@ -140,8 +153,8 @@ export default function PrototypeOne() {
                 className="amount-input"
                 type="text"
                 inputMode="numeric"
-                value={formatAmount(oneTimeAmount)}
-                onChange={e => setOneTimeAmount(Math.max(1000, Math.min(300000, parseAmount(e.target.value))))}
+                value={oneTimeInput === "" ? "" : formatAmount(oneTimeAmount)}
+                onChange={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setOneTimeInput(raw); setOneTimeAmount(Math.min(300000, parseAmount(raw))); }}
                 aria-label="One-time investment amount"
               />
             ) : (
@@ -149,19 +162,21 @@ export default function PrototypeOne() {
                 className="amount-input"
                 type="text"
                 inputMode="numeric"
-                value={formatAmount(baseAmount)}
-                onChange={e => setBaseAmount(Math.max(sipMinimum, Math.min(sipMaximum, parseAmount(e.target.value) || sipMinimum)))}
+                value={sipInput === "" ? "" : formatAmount(baseAmount)}
+                onChange={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setSipInput(raw); setBaseAmount(Math.min(sipMaximum, parseAmount(raw))); }}
                 aria-label="SIP amount"
               />
             )}
 
             <button
               onClick={() => mode === "oneTime"
-                ? setOneTimeAmount(v => Math.min(300000, v + 1000))
-                : setBaseAmount(v => Math.min(sipMaximum, v + sipStep))}
+                ? (() => { const next = Math.min(300000, oneTimeAmount + 1000); setOneTimeAmount(next); setOneTimeInput(String(next)); })()
+                : (() => { const next = Math.min(sipMaximum, baseAmount + sipStep); setBaseAmount(next); setSipInput(String(next)); })()}
               disabled={mode === "oneTime" ? oneTimeAmount >= 300000 : baseAmount >= sipMaximum}
             >+</button>
           </div>
+
+          {amountError && <div className="amount-error">{amountError}</div>}
 
           <div className="presets">
             {(mode === "oneTime"
@@ -210,7 +225,9 @@ export default function PrototypeOne() {
               const nextMinimum = nextFrequency === "Daily" ? 100 : nextFrequency === "Weekly" ? 1000 : 5000;
               const nextMaximum = nextFrequency === "Daily" ? 2000 : nextFrequency === "Weekly" ? 20000 : 50000;
               setFrequency(nextFrequency);
-              setBaseAmount(Math.min(nextMaximum, Math.max(nextMinimum, selectedCount * 100)));
+              const nextAmount = Math.min(nextMaximum, Math.max(nextMinimum, selectedCount * 100));
+              setBaseAmount(nextAmount);
+              setSipInput(String(nextAmount));
             }}
           >
             <option>Daily</option>
@@ -261,7 +278,7 @@ export default function PrototypeOne() {
         </div>
 
         <footer>
-          <button className="proceed" onClick={() => setSheet(true)}>{mode === "oneTime" ? "Continue" : "Proceed"}</button>
+          <button className="proceed" disabled={!!amountError || currentInput === ""} onClick={() => setSheet(true)}>{mode === "oneTime" ? "Continue" : "Proceed"}</button>
         </footer>
 
         {sheet && (
