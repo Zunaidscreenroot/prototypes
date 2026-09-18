@@ -38,6 +38,7 @@ export default function PrototypeOne() {
   const [frequency, setFrequency] = useState("Daily");
   const [sheet, setSheet] = useState(false);
   const [mode, setMode] = useState<"sip" | "oneTime">("sip");
+  const [dark, setDark] = useState(false);
   const [oneTimeAmount, setOneTimeAmount] = useState(45000);
 
   const selected = useMemo(() => {
@@ -101,8 +102,9 @@ export default function PrototypeOne() {
   ];
 
   return (
-    <main className="sip-page">
+    <main className={dark ? "sip-page dark" : "sip-page"}>
       <div className="screenroot-label">SCREENROOT · PROTOTYPE TESTS</div>
+      <button className="theme-toggle" onClick={() => setDark(v => !v)} aria-label="Toggle theme">{dark ? "☀" : "☾"}</button>
 
       <div className="phone">
         <header className="sip-header">

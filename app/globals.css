@@ -3,3 +3,32 @@
 .amount-input{width:145px;border:0;background:transparent;color:#181448;text-align:center;font-size:35px;font-weight:500;letter-spacing:-.055em;outline:none}
 .amount-input::-webkit-inner-spin-button,.amount-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .amount-input[type=number]{-moz-appearance:textfield}
+
+.theme-toggle{position:fixed;top:10px;left:10px;z-index:31;width:28px;height:28px;border:1px solid #bdbdc4;border-radius:50%;background:#fff;color:#222;display:grid;place-items:center;font-size:14px;box-shadow:0 2px 8px #0001}
+.sip-page.dark{background:#101114;color:#f1f1f3}
+.sip-page.dark .phone{background:#15161a;color:#f1f1f3;box-shadow:0 10px 40px #0006}
+.sip-page.dark .sip-header,.sip-page.dark .tabs,.sip-page.dark .amount-section,.sip-page.dark .fund-list,.sip-page.dark footer{background:#15161a}
+.sip-page.dark .sip-header h1,.sip-page.dark .back,.sip-page.dark .help,.sip-page.dark .amount-control,.sip-page.dark .amount-control button{color:#f1f1f3}
+.sip-page.dark .tabs{border-bottom-color:#45464e}
+.sip-page.dark .tab{background:#15161a;color:#d6d6dc}
+.sip-page.dark .tab.active{background:#66647f;color:#fff}
+.sip-page.dark .preset,.sip-page.dark .frequency,.sip-page.dark .fund-card,.sip-page.dark .nav-card,.sip-page.dark .payment-card{background:#1d1e23;color:#e8e8ec;border-color:#3b3c43}
+.sip-page.dark .preset{color:#c5c5cc}
+.sip-page.dark .preset.selected{background:#66647f;color:#fff;border-color:#66647f}
+.sip-page.dark .preset small{background:#15161a;color:#aaa}
+.sip-page.dark .range-labels,.sip-page.dark .payment-card span,.sip-page.dark .nav-card,.sip-page.dark .fund-copy span,.sip-page.dark .fund-copy b{color:#bcbcc5}
+.sip-page.dark .payment-card p{background:#24252a;color:#c5c5cc}
+.sip-page.dark .payment-card strong{color:#f1f1f3}
+.sip-page.dark .frequency{color:#e8e8ec}
+.sip-page.dark .fund-card.selected-fund{border-color:#686973}
+.sip-page.dark .investing-pill{background:#2b2c31}
+.sip-page.dark .amount-input{color:#f1f1f3}
+.sip-page.dark .amount-input::selection{background:#66647f}
+.sip-page.dark .screenroot-label{color:#aaa}
+.sip-page.dark .theme-toggle{background:#27282d;color:#fff;border-color:#55565e}
+.sip-page.dark .overlay{background:rgba(0,0,0,.78)}
+.sip-page.dark .sheet{background:#191a1e;color:#eee}
+.sip-page.dark .detail-card{background:#222329;border-color:#3b3c43}
+.sip-page.dark .provider,.sip-page.dark .allocation{color:#c5c5ce}
+.sip-page.dark .allocation b{color:#f0f0f2}
+.sip-page.dark .sheet-button{background:#66647f}
