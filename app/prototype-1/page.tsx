@@ -107,7 +107,9 @@ export default function PrototypeOne() {
     const nextCount = Number(nextEdelweiss) + Number(nextAxisGold) + Number(nextAxisSilver);
 
     if (mode === "sip") {
-      setBaseAmount(v => Math.min(sipMaximum, Math.max(v, nextCount * 100)));
+      const nextAmount = Math.min(sipMaximum, Math.max(baseAmount, nextCount * 100));
+      setBaseAmount(nextAmount);
+      setSipInput(String(nextAmount));
     }
 
     setEdelweiss(nextEdelweiss);
