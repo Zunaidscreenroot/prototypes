@@ -37,6 +37,7 @@ export default function PrototypeOne() {
   const [baseAmount, setBaseAmount] = useState(100);
   const [frequency, setFrequency] = useState("Daily");
   const [sheet, setSheet] = useState(false);
+  const [mode, setMode] = useState<"sip" | "oneTime">("sip");
 
   const selected = useMemo(() => {
     const list: { key: FundKey; amount: number }[] = [];
@@ -93,8 +94,8 @@ export default function PrototypeOne() {
         </header>
 
         <div className="tabs">
-          <button className="tab active">Setup SIP</button>
-          <button className="tab">One-time</button>
+          <button className={mode === "sip" ? "tab active" : "tab"} onClick={() => setMode("sip")}>Setup SIP</button>
+          <button className={mode === "oneTime" ? "tab active" : "tab"} onClick={() => setMode("oneTime")}>One-time</button>
         </div>
 
         <section className="amount-section">
@@ -133,6 +134,7 @@ export default function PrototypeOne() {
             <span>₹3,000</span>
           </div>
 
+          {mode === "sip" && (
           <select
             className="frequency"
             value={frequency}
@@ -142,14 +144,17 @@ export default function PrototypeOne() {
             <option>Weekly</option>
             <option>Monthly</option>
           </select>
+          )}
         </section>
 
+        {mode === "sip" && (
         <section className="payment-card">
           <div><span>First payment</span><strong>Today</strong></div>
           <div className="divider" />
           <div><span>Next payment on <i>i</i></span><strong>30th Jul</strong></div>
           <p>Your SIP (automatic investments) will be active until canceled. You can modify, pause, or cancel anytime.</p>
         </section>
+        )}
 
         <button className="nav-card" onClick={() => setSheet(true)}>
           <span>Purchase price (NAV) date: &nbsp;20 Aug, 2026</span>
@@ -183,7 +188,7 @@ export default function PrototypeOne() {
         </div>
 
         <footer>
-          <button className="proceed" onClick={() => setSheet(true)}>Proceed</button>
+          <button className="proceed" onClick={() => setSheet(true)}>{mode === "oneTime" ? `Invest ₹${total.toLocaleString("en-IN")}` : "Proceed"}</button>
         </footer>
 
         {sheet && (
@@ -205,7 +210,7 @@ export default function PrototypeOne() {
                     {allocation.filter(item => item.amount > 0).map(item => (
                       <div className="allocation" key={item.label}>
                         <span>{item.label} - {item.percent.toFixed(2).replace(/\.00$/, "")}%</span>
-                        <b>₹{item.amount.toFixed(2)}/{frequency.toLowerCase()}</b>
+                        <b>₹{item.amount.toFixed(2)}/{mode === "oneTime" ? "one-time" : frequency.toLowerCase()}</b>
                       </div>
                     ))}
                   </div>
