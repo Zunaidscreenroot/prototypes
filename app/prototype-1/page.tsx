@@ -47,6 +47,7 @@ export default function PrototypeOne() {
   }, [edelweiss, axisGold, axisSilver, baseAmount]);
 
   const total = selected.reduce((sum, item) => sum + item.amount, 0);
+  const minimumTotal = selected.length * 100;
 
   const goldAmount = selected.reduce(
     (sum, item) => sum + item.amount * funds[item.key].gold / 100,
@@ -62,8 +63,11 @@ export default function PrototypeOne() {
   const silverPercent = total ? silverAmount / total * 100 : 0;
 
   const setPreset = (value: number) => {
-    setBaseAmount(value);
-    setEdelweiss(true);
+    const minimumEdelweiss = edelweiss ? 100 : 0;
+    const axisCount = Number(axisGold) + Number(axisSilver);
+    const nextEdelweiss = Math.max(minimumEdelweiss, value - axisCount * 100);
+    if (edelweiss) setBaseAmount(Math.max(100, nextEdelweiss));
+    else if (value >= axisCount * 100) setBaseAmount(100);
   };
 
   const toggleFund = (key: FundKey) => {
@@ -95,9 +99,9 @@ export default function PrototypeOne() {
 
         <section className="amount-section">
           <div className="amount-control">
-            <button onClick={() => setBaseAmount(v => Math.max(100, v - 100))}>−</button>
-            <strong>₹{baseAmount.toLocaleString("en-IN")}</strong>
-            <button onClick={() => setBaseAmount(v => Math.min(3000, v + 100))}>+</button>
+            <button onClick={() => setBaseAmount(v => Math.max(100, v - 100))} disabled={!edelweiss || baseAmount <= 100}>−</button>
+            <strong>₹{total.toLocaleString("en-IN")}</strong>
+            <button onClick={() => setBaseAmount(v => Math.min(3000, v + 100))} disabled={!edelweiss}>+</button>
           </div>
 
           <div className="presets">
@@ -116,7 +120,7 @@ export default function PrototypeOne() {
           <input
             className="range"
             type="range"
-            min="100"
+            min={edelweiss ? 100 : 100}
             max="3000"
             step="100"
             value={baseAmount}
@@ -187,21 +191,25 @@ export default function PrototypeOne() {
             <section className="sheet" onClick={e => e.stopPropagation()}>
               <div className="handle" />
               <div className="detail-card">
-                <div className="provider">
-                  <span>✳</span>
-                  <span className="provider-name">
-                    {selected.length === 1
-                      ? funds[selected[0].key].provider
-                      : "Your selected investment funds"}
-                  </span>
+                <div className="selected-funds">
+                  {selected.map(item => (
+                    <div className="provider" key={item.key}>
+                      <span className={item.key === "edelweiss" ? "provider-icon blue" : "provider-icon"}>✳</span>
+                      <span className="provider-name">{funds[item.key].provider}</span>
+                    </div>
+                  ))}
                 </div>
 
-                {allocation.map(item => (
-                  <div className="allocation" key={item.label}>
-                    <span>{item.label} - {item.percent.toFixed(2).replace(/\.00$/, "")}%</span>
-                    <b>₹{item.amount.toFixed(2)}/{frequency.toLowerCase()}</b>
+                {(selected.length > 1 || edelweiss) && (
+                  <div className="allocation-block">
+                    {allocation.filter(item => item.amount > 0).map(item => (
+                      <div className="allocation" key={item.label}>
+                        <span>{item.label} - {item.percent.toFixed(2).replace(/\.00$/, "")}%</span>
+                        <b>₹{item.amount.toFixed(2)}/{frequency.toLowerCase()}</b>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
 
               <button className="sheet-button" onClick={() => setSheet(false)}>
