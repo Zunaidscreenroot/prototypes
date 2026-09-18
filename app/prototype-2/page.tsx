@@ -30,6 +30,10 @@ const investments = [
 
 const percentages = [50, 75, 100];
 
+const formatAmount = (value: number) => value.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+
+const parseAmount = (value: string) => Number(value.replace(/[^0-9]/g, "")) || 0;
+
 export default function PrototypeTwo() {
   const [selectedId, setSelectedId] = useState("edelweiss");
   const selected = investments.find(item => item.id === selectedId) ?? investments[0];
@@ -42,13 +46,13 @@ export default function PrototypeTwo() {
     [selected, withdrawPercent]
   );
 
-  const displayedAmount = manualAmount;
-  const manualPercent = Math.max(0, Math.min(100, (manualAmount / selected.balance) * 100));
+  const displayedAmount = formatAmount(manualAmount);
 
   const selectInvestment = (id: string) => {
     setSelectedId(id);
     setWithdrawPercent(50);
-    setManualAmount(Math.round(selected.balance * 0.5));
+    const nextInvestment = investments.find(item => item.id === id) ?? investments[0];
+    setManualAmount(Math.round(nextInvestment.balance * 0.5));
   };
 
   return (
@@ -75,7 +79,7 @@ export default function PrototypeTwo() {
                 <span className={investment.id === "edelweiss" ? "fund-icon blue" : "fund-icon"}>{investment.icon}</span>
                 <span className="investment-name">{investment.name}</span>
                 <span className="investment-values">
-                  <strong>₹{investment.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</strong>
+                  <strong>₹{formatAmount(investment.balance)}</strong>
                   <span>{investment.units} Units</span>
                 </span>
               </button>
@@ -90,13 +94,11 @@ export default function PrototypeTwo() {
             <button onClick={() => { const next = Math.max(0, withdrawPercent - 5); setWithdrawPercent(next); setManualAmount(Math.round(selected.balance * next / 100)); }}>−</button>
             <input
               className="withdraw-amount-input"
-              type="number"
-              min="0"
-              max={selected.balance}
-              step="1"
+              type="text"
+              inputMode="numeric"
               value={displayedAmount}
               onChange={e => {
-                const amount = Math.max(0, Math.min(selected.balance, Number(e.target.value) || 0));
+                const amount = Math.max(0, Math.min(selected.balance, parseAmount(e.target.value)));
                 setManualAmount(amount);
                 setWithdrawPercent(Math.round((amount / selected.balance) * 100 / 5) * 5);
               }}
@@ -114,7 +116,7 @@ export default function PrototypeTwo() {
                   className={withdrawPercent === percent ? "withdraw-preset selected" : "withdraw-preset"}
                   onClick={() => { setWithdrawPercent(percent); setManualAmount(amount); }}
                 >
-                  ₹{amount.toLocaleString("en-IN")} ({percent}%)
+                  ₹{formatAmount(amount)} ({percent}%)
                 </button>
               );
             })}
@@ -134,15 +136,15 @@ export default function PrototypeTwo() {
 
           <div className="withdraw-range-labels">
             <span>₹100</span>
-            <span>₹{selected.balance.toLocaleString("en-IN")}</span>
+            <span>₹{formatAmount(selected.balance)}</span>
           </div>
         </section>
 
         <section className="withdraw-footer">
           <div className="tax-pill">Tax calculation &amp; exit fees <span>i</span></div>
           <p>Transferring to <span className="bank-icon">▲</span> <strong>AXIS Bank • 21756</strong></p>
-          <button className="withdraw-button" onClick={() => alert(`Withdraw ₹${withdrawAmount.toLocaleString("en-IN")}`)}>
-            Withdraw ₹{withdrawAmount.toLocaleString("en-IN")}
+          <button className="withdraw-button" onClick={() => alert(`Withdraw ₹${formatAmount(manualAmount)}`)}>
+            Withdraw ₹{formatAmount(manualAmount)}
           </button>
         </section>
       </div>

@@ -30,6 +30,10 @@ type FundKey = keyof typeof funds;
 
 const presets = [100, 200, 300, 500, 1000];
 
+const formatAmount = (value: number) => value.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+
+const parseAmount = (value: string) => Number(value.replace(/[^0-9]/g, "")) || 0;
+
 export default function PrototypeOne() {
   const [edelweiss, setEdelweiss] = useState(true);
   const [axisGold, setAxisGold] = useState(false);
@@ -134,23 +138,19 @@ export default function PrototypeOne() {
             {mode === "oneTime" ? (
               <input
                 className="amount-input"
-                type="number"
-                min="1000"
-                max="300000"
-                step="100"
-                value={oneTimeAmount}
-                onChange={e => setOneTimeAmount(Math.max(1000, Math.min(300000, Number(e.target.value) || 1000)))}
+                type="text"
+                inputMode="numeric"
+                value={formatAmount(oneTimeAmount)}
+                onChange={e => setOneTimeAmount(Math.max(1000, Math.min(300000, parseAmount(e.target.value))))}
                 aria-label="One-time investment amount"
               />
             ) : (
               <input
                 className="amount-input"
-                type="number"
-                min={sipMinimum}
-                max={sipMaximum}
-                step={sipStep}
-                value={baseAmount}
-                onChange={e => setBaseAmount(Math.max(sipMinimum, Math.min(sipMaximum, Number(e.target.value) || sipMinimum)))}
+                type="text"
+                inputMode="numeric"
+                value={formatAmount(baseAmount)}
+                onChange={e => setBaseAmount(Math.max(sipMinimum, Math.min(sipMaximum, parseAmount(e.target.value) || sipMinimum)))}
                 aria-label="SIP amount"
               />
             )}
@@ -237,19 +237,19 @@ export default function PrototypeOne() {
         <section className="fund-list">
           <FundCard
             title="Gold+Silver"
-            subtitle={edelweiss ? `Investing: ₹${(selected.find(x => x.key === "edelweiss")?.amount ?? 0).toFixed(2)}` : "Not investing in Gold+Silver"}
+            subtitle={edelweiss ? `Investing: ₹${formatAmount(selected.find(x => x.key === "edelweiss")?.amount ?? 0)}` : "Not investing in Gold+Silver"}
             selected={edelweiss}
             onClick={() => toggleFund("edelweiss")}
           />
           <FundCard
             title="Only Gold"
-            subtitle={axisGold ? `Investing: ₹${(selected.find(x => x.key === "gold")?.amount ?? 0).toFixed(2)}` : "Not investing in only gold"}
+            subtitle={axisGold ? `Investing: ₹${formatAmount(selected.find(x => x.key === "gold")?.amount ?? 0)}` : "Not investing in only gold"}
             selected={axisGold}
             onClick={() => toggleFund("gold")}
           />
           <FundCard
             title="Only Silver"
-            subtitle={axisSilver ? `Investing: ₹${(selected.find(x => x.key === "silver")?.amount ?? 0).toFixed(2)}` : "Not investing in only silver"}
+            subtitle={axisSilver ? `Investing: ₹${formatAmount(selected.find(x => x.key === "silver")?.amount ?? 0)}` : "Not investing in only silver"}
             selected={axisSilver}
             onClick={() => toggleFund("silver")}
           />
@@ -283,7 +283,7 @@ export default function PrototypeOne() {
                     {allocation.filter(item => item.amount > 0).map(item => (
                       <div className="allocation" key={item.label}>
                         <span>{item.label} - {item.percent.toFixed(2).replace(/\.00$/, "")}%</span>
-                        <b>₹{item.amount.toFixed(2)}{mode === "sip" ? `/${frequency.toLowerCase()}` : ""}</b>
+                        <b>₹{formatAmount(item.amount)}{mode === "sip" ? `/${frequency.toLowerCase()}` : ""}</b>
                       </div>
                     ))}
                   </div>
