@@ -67,7 +67,7 @@ export default function PrototypeTwo() {
       <div className="screenroot-label">SCREENROOT · PROTOTYPE TESTS</div>
       <button className="withdraw-theme-toggle" onClick={() => setDark(v => !v)} aria-label="Toggle theme">{dark ? "☀" : "☾"}</button>
 
-      <div className="withdraw-phone">
+      <div className={withdrawalError ? "withdraw-phone invalid" : "withdraw-phone"}>
         <header className="withdraw-header">
           <button className="withdraw-back" aria-label="Back">←</button>
           <h1>Withdraw</h1>
@@ -98,7 +98,7 @@ export default function PrototypeTwo() {
           <p className="withdraw-label">I want to withdraw</p>
 
           <div className="withdraw-amount">
-            <button onClick={() => { const next = Math.max(MIN_WITHDRAWAL, manualAmount - 100); setManualAmount(next); setManualInput(String(next)); setWithdrawPercent((next / selected.balance) * 100); }}>−</button>
+            <button disabled={!!withdrawalError} onClick={() => { const next = Math.max(MIN_WITHDRAWAL, manualAmount - 100); setManualAmount(next); setManualInput(String(next)); setWithdrawPercent((next / selected.balance) * 100); }}>−</button>
             <input
               className="withdraw-amount-input"
               type="text"
@@ -113,12 +113,12 @@ export default function PrototypeTwo() {
               }}
               aria-label="Manual withdrawal amount"
             />
-            <button onClick={() => { const next = Math.min(selected.balance, manualAmount + 100); setManualAmount(next); setManualInput(String(next)); setWithdrawPercent((next / selected.balance) * 100); }}>+</button>
+            <button disabled={!!withdrawalError} onClick={() => { const next = Math.min(selected.balance, manualAmount + 100); setManualAmount(next); setManualInput(String(next)); setWithdrawPercent((next / selected.balance) * 100); }}>+</button>
           </div>
 
           {withdrawalError && <div className="withdraw-error">{withdrawalError}</div>}
 
-          <div className="withdraw-presets">
+          <div className={withdrawalError ? "withdraw-presets inactive" : "withdraw-presets"}>
             {percentages.map(percent => {
               const amount = Math.round(selected.balance * percent / 100);
               return (
@@ -134,7 +134,8 @@ export default function PrototypeTwo() {
           </div>
 
           <input
-            className="withdraw-range"
+            className={withdrawalError ? "withdraw-range inactive" : "withdraw-range"}
+            disabled={!!withdrawalError}
             type="range"
             min={MIN_WITHDRAWAL}
             max={selected.balance}
@@ -155,7 +156,7 @@ export default function PrototypeTwo() {
           </div>
         </section>
 
-        <section className="withdraw-footer">
+        <section className={withdrawalError ? "withdraw-footer inactive" : "withdraw-footer"}>
           <div className="tax-pill">Tax calculation &amp; exit fees <span>i</span></div>
           <p>Transferring to <span className="bank-icon">▲</span> <strong>AXIS Bank • 21756</strong></p>
           <button className="withdraw-button" disabled={!!withdrawalError}

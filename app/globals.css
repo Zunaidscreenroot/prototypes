@@ -101,3 +101,50 @@
 .withdraw-page.dark .withdraw-preset.selected{background:#00baf2;color:#061014;border-color:#00baf2}
 .withdraw-page.dark .withdraw-range,.withdraw-page.dark .withdraw-range::-moz-range-progress{accent-color:#00baf2}
 .withdraw-page.dark .withdraw-range::-webkit-slider-thumb,.withdraw-page.dark .withdraw-range::-moz-range-thumb{background:#00baf2}
+
+/* Invalid manual-entry state: keep the amount field editable, deactivate everything else below it. */
+.amount-error,.withdraw-error{
+  margin:2px 0 0;
+  text-align:center;
+  color:#d14343;
+  font-size:10px;
+  line-height:1.25;
+  font-weight:500;
+}
+.phone.invalid .amount-control>button,
+.phone.invalid .presets,
+.phone.invalid .range,
+.phone.invalid .frequency,
+.phone.invalid .payment-card,
+.phone.invalid .nav-card,
+.phone.invalid .fund-list,
+.phone.invalid .investing-pill,
+.phone.invalid footer{
+  opacity:.4;
+}
+.phone.invalid .presets,
+.phone.invalid .range,
+.phone.invalid .frequency,
+.phone.invalid .payment-card,
+.phone.invalid .nav-card,
+.phone.invalid .fund-list,
+.phone.invalid .investing-pill,
+.phone.invalid footer{
+  pointer-events:none;
+}
+.phone.invalid .amount-control>button{cursor:default}
+.phone.invalid .amount-input{opacity:1}
+.withdraw-phone.invalid .withdraw-amount>button,
+.withdraw-phone.invalid .withdraw-presets,
+.withdraw-phone.invalid .withdraw-range,
+.withdraw-phone.invalid .withdraw-footer{
+  opacity:.4;
+}
+.withdraw-phone.invalid .withdraw-presets,
+.withdraw-phone.invalid .withdraw-range,
+.withdraw-phone.invalid .withdraw-footer{
+  pointer-events:none;
+}
+.withdraw-phone.invalid .withdraw-amount>button{cursor:default}
+.withdraw-phone.invalid .withdraw-amount-input{opacity:1}
+.sip-page.dark .amount-error,.withdraw-page.dark .withdraw-error{color:#ff7b72}

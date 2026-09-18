@@ -125,7 +125,7 @@ export default function PrototypeOne() {
       <div className="screenroot-label">SCREENROOT · PROTOTYPE TESTS</div>
       <button className="theme-toggle" onClick={() => setDark(v => !v)} aria-label="Toggle theme">{dark ? "☀" : "☾"}</button>
 
-      <div className="phone">
+      <div className={amountError ? "phone invalid" : "phone"}>
         <header className="sip-header">
           <button className="back" aria-label="Back">←</button>
           <h1>{mode === "oneTime" ? "Investing in Sona-Chandi" : "Edit SIP details"}</h1>
@@ -142,6 +142,7 @@ export default function PrototypeOne() {
 
           <div className="amount-control">
             <button
+              disabled={!!amountError}
               onClick={() => mode === "oneTime"
                 ? (() => { const next = Math.max(1000, oneTimeAmount - 1000); setOneTimeAmount(next); setOneTimeInput(String(next)); })()
                 : (() => { const next = Math.max(sipMinimum, baseAmount - sipStep); setBaseAmount(next); setSipInput(String(next)); })()}
@@ -178,7 +179,7 @@ export default function PrototypeOne() {
 
           {amountError && <div className="amount-error">{amountError}</div>}
 
-          <div className="presets">
+          <div className={amountError ? "presets inactive" : "presets"}>
             {(mode === "oneTime"
               ? [1000, 5000, 10000, 15000, 20000]
               : [sipMinimum, Math.min(sipMaximum, sipMinimum + sipStep), Math.min(sipMaximum, sipMinimum + sipStep * 2), Math.min(sipMaximum, sipMinimum + sipStep * 4), sipMaximum]
@@ -196,7 +197,8 @@ export default function PrototypeOne() {
           </div>
 
           <input
-            className="range"
+            className={amountError ? "range inactive" : "range"}
+            disabled={!!amountError}
             type="range"
             min={mode === "oneTime" ? 1000 : sipMinimum}
             max={mode === "oneTime" ? 300000 : sipMaximum}
@@ -218,6 +220,7 @@ export default function PrototypeOne() {
 
           {mode === "sip" && (
           <select
+            disabled={!!amountError}
             className="frequency"
             value={frequency}
             onChange={e => {
@@ -238,7 +241,7 @@ export default function PrototypeOne() {
         </section>
 
         {mode === "sip" && (
-        <section className="payment-card">
+        <section className={amountError ? "payment-card inactive" : "payment-card"}>
           <div><span>First payment</span><strong>Today</strong></div>
           <div className="divider" />
           <div><span>Next payment on <i>i</i></span><strong>30th Jul</strong></div>
@@ -246,12 +249,12 @@ export default function PrototypeOne() {
         </section>
         )}
 
-        <button className="nav-card" onClick={() => setSheet(true)}>
+        <button disabled={!!amountError} className={amountError ? "nav-card inactive" : "nav-card"} onClick={() => setSheet(true)}>
           <span>Purchase price (NAV) date: &nbsp;20 Aug, 2026</span>
           <i>i</i>
         </button>
 
-        <section className="fund-list">
+        <section className={amountError ? "fund-list inactive" : "fund-list"}>
           <FundCard
             title="Gold+Silver"
             subtitle={edelweiss ? `Investing: ₹${formatAmount(selected.find(x => x.key === "edelweiss")?.amount ?? 0)}` : "Not investing in Gold+Silver"}
@@ -272,7 +275,7 @@ export default function PrototypeOne() {
           />
         </section>
 
-        <div className="investing-pill" onClick={() => setSheet(true)}>
+        <div className={amountError ? "investing-pill inactive" : "investing-pill"} onClick={() => { if (!amountError) setSheet(true); }}>
           <span>Investing in</span>
           <button aria-label="View allocation">✳</button>
         </div>
