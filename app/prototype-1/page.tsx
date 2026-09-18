@@ -46,20 +46,16 @@ export default function PrototypeOne() {
     if (axisGold) keys.push("gold");
     if (axisSilver) keys.push("silver");
 
-    if (mode === "oneTime") {
-      const equalAmount = keys.length ? oneTimeAmount / keys.length : 0;
-      return keys.map(key => ({ key, amount: equalAmount }));
-    }
-
-    return keys.map(key => ({
-      key,
-      amount: key === "edelweiss" ? baseAmount : 100
-    }));
+    const investmentTotal = mode === "oneTime" ? oneTimeAmount : baseAmount;
+    const equalAmount = keys.length ? investmentTotal / keys.length : 0;
+    return keys.map(key => ({ key, amount: equalAmount }));
   }, [edelweiss, axisGold, axisSilver, baseAmount, mode, oneTimeAmount]);
 
+  const selectedCount = Number(edelweiss) + Number(axisGold) + Number(axisSilver);
+  const sipMinimum = Math.max(100, selectedCount * 100);
   const total = mode === "oneTime"
     ? oneTimeAmount
-    : selected.reduce((sum, item) => sum + item.amount, 0);
+    : baseAmount;
 
   const goldAmount = selected.reduce(
     (sum, item) => sum + item.amount * funds[item.key].gold / 100,
@@ -79,18 +75,22 @@ export default function PrototypeOne() {
       setOneTimeAmount(value);
       return;
     }
-
-    const minimumEdelweiss = edelweiss ? 100 : 0;
-    const axisCount = Number(axisGold) + Number(axisSilver);
-    const nextEdelweiss = Math.max(minimumEdelweiss, value - axisCount * 100);
-    if (edelweiss) setBaseAmount(Math.max(100, nextEdelweiss));
-    else if (value >= axisCount * 100) setBaseAmount(100);
+    setBaseAmount(Math.max(sipMinimum, value));
   };
 
   const toggleFund = (key: FundKey) => {
-    if (key === "edelweiss") setEdelweiss(v => !v);
-    if (key === "gold") setAxisGold(v => !v);
-    if (key === "silver") setAxisSilver(v => !v);
+    const nextEdelweiss = key === "edelweiss" ? !edelweiss : edelweiss;
+    const nextAxisGold = key === "gold" ? !axisGold : axisGold;
+    const nextAxisSilver = key === "silver" ? !axisSilver : axisSilver;
+    const nextCount = Number(nextEdelweiss) + Number(nextAxisGold) + Number(nextAxisSilver);
+
+    if (mode === "sip") {
+      setBaseAmount(v => Math.max(v, nextCount * 100));
+    }
+
+    setEdelweiss(nextEdelweiss);
+    setAxisGold(nextAxisGold);
+    setAxisSilver(nextAxisSilver);
   };
 
   const allocation = [
@@ -121,8 +121,8 @@ export default function PrototypeOne() {
             <button
               onClick={() => mode === "oneTime"
                 ? setOneTimeAmount(v => Math.max(1000, v - 1000))
-                : setBaseAmount(v => Math.max(100, v - 100))}
-              disabled={mode === "oneTime" ? oneTimeAmount <= 1000 : !edelweiss || baseAmount <= 100}
+                : setBaseAmount(v => Math.max(sipMinimum, v - 100))}
+              disabled={mode === "oneTime" ? oneTimeAmount <= 1000 : baseAmount <= sipMinimum}
             >−</button>
 
             {mode === "oneTime" ? (
@@ -137,14 +137,23 @@ export default function PrototypeOne() {
                 aria-label="One-time investment amount"
               />
             ) : (
-              <strong>₹{total.toLocaleString("en-IN")}</strong>
+              <input
+                className="amount-input"
+                type="number"
+                min={sipMinimum}
+                max="3000"
+                step="100"
+                value={baseAmount}
+                onChange={e => setBaseAmount(Math.max(sipMinimum, Math.min(3000, Number(e.target.value) || sipMinimum)))}
+                aria-label="SIP amount"
+              />
             )}
 
             <button
               onClick={() => mode === "oneTime"
                 ? setOneTimeAmount(v => Math.min(300000, v + 1000))
                 : setBaseAmount(v => Math.min(3000, v + 100))}
-              disabled={mode === "oneTime" ? oneTimeAmount >= 300000 : !edelweiss}
+              disabled={mode === "oneTime" ? oneTimeAmount >= 300000 : baseAmount >= 3000}
             >+</button>
           </div>
 
@@ -157,7 +166,7 @@ export default function PrototypeOne() {
               >
                 ₹{value.toLocaleString("en-IN")}
                 {value === 1000 && mode === "oneTime" && <small>Min</small>}
-                {value === 100 && mode === "sip" && <small>Min</small>}
+                {mode === "sip" && value === sipMinimum && <small>Min</small>}
               </button>
             ))}
           </div>
@@ -165,7 +174,7 @@ export default function PrototypeOne() {
           <input
             className="range"
             type="range"
-            min={mode === "oneTime" ? 1000 : 100}
+            min={mode === "oneTime" ? 1000 : sipMinimum}
             max={mode === "oneTime" ? 300000 : 3000}
             step={mode === "oneTime" ? 1000 : 100}
             value={mode === "oneTime" ? oneTimeAmount : baseAmount}
@@ -176,7 +185,7 @@ export default function PrototypeOne() {
           />
 
           <div className="range-labels">
-            <span>₹{mode === "oneTime" ? "1,000" : "100"}</span>
+            <span>₹{mode === "oneTime" ? "1,000" : sipMinimum.toLocaleString("en-IN")}</span>
             <span>₹{mode === "oneTime" ? "3,00,000" : "3,000"}</span>
           </div>
 
