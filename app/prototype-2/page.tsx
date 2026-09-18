@@ -42,8 +42,6 @@ export default function PrototypeTwo() {
   const [dark, setDark] = useState(false);
   const [manualAmount, setManualAmount] = useState(9750);
 
-  const minimumWithdrawalPercent = Math.min(100, Math.ceil((MIN_WITHDRAWAL / selected.balance) * 100 / 5) * 5);
-
   const withdrawAmount = useMemo(
     () => Math.round(selected.balance * withdrawPercent / 100),
     [selected, withdrawPercent]
@@ -94,7 +92,7 @@ export default function PrototypeTwo() {
           <p className="withdraw-label">I want to withdraw</p>
 
           <div className="withdraw-amount">
-            <button onClick={() => { const next = Math.max(minimumWithdrawalPercent, withdrawPercent - 5); setWithdrawPercent(next); setManualAmount(Math.round(selected.balance * next / 100)); }}>−</button>
+            <button onClick={() => { const next = Math.max(MIN_WITHDRAWAL, manualAmount - 100); setManualAmount(next); setWithdrawPercent((next / selected.balance) * 100); }}>−</button>
             <input
               className="withdraw-amount-input"
               type="text"
@@ -103,11 +101,11 @@ export default function PrototypeTwo() {
               onChange={e => {
                 const amount = Math.max(MIN_WITHDRAWAL, Math.min(selected.balance, parseAmount(e.target.value) || MIN_WITHDRAWAL));
                 setManualAmount(amount);
-                setWithdrawPercent(Math.max(minimumWithdrawalPercent, Math.round((amount / selected.balance) * 100 / 5) * 5));
+                setWithdrawPercent((amount / selected.balance) * 100);
               }}
               aria-label="Manual withdrawal amount"
             />
-            <button onClick={() => { const next = Math.min(100, withdrawPercent + 5); setWithdrawPercent(next); setManualAmount(Math.round(selected.balance * next / 100)); }}>+</button>
+            <button onClick={() => { const next = Math.min(selected.balance, manualAmount + 100); setManualAmount(next); setWithdrawPercent((next / selected.balance) * 100); }}>+</button>
           </div>
 
           <div className="withdraw-presets">
@@ -128,12 +126,16 @@ export default function PrototypeTwo() {
           <input
             className="withdraw-range"
             type="range"
-            min={minimumWithdrawalPercent}
-            max="100"
-            step="5"
-            value={withdrawPercent}
-            style={{ "--withdraw-progress": `${withdrawPercent}%` } as React.CSSProperties}
-            onChange={e => { const percent = Math.max(minimumWithdrawalPercent, Number(e.target.value)); setWithdrawPercent(percent); setManualAmount(Math.max(MIN_WITHDRAWAL, Math.round(selected.balance * percent / 100))); }}
+            min={MIN_WITHDRAWAL}
+            max={selected.balance}
+            step="100"
+            value={manualAmount}
+            style={{ "--withdraw-progress": (manualAmount / selected.balance * 100) + "%" } as React.CSSProperties}
+            onChange={e => {
+              const amount = Math.max(MIN_WITHDRAWAL, Math.min(selected.balance, Number(e.target.value)));
+              setManualAmount(amount);
+              setWithdrawPercent((amount / selected.balance) * 100);
+            }}
             aria-label="Withdrawal percentage"
           />
 
