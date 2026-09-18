@@ -38,17 +38,28 @@ export default function PrototypeOne() {
   const [frequency, setFrequency] = useState("Daily");
   const [sheet, setSheet] = useState(false);
   const [mode, setMode] = useState<"sip" | "oneTime">("sip");
+  const [oneTimeAmount, setOneTimeAmount] = useState(45000);
 
   const selected = useMemo(() => {
-    const list: { key: FundKey; amount: number }[] = [];
-    if (edelweiss) list.push({ key: "edelweiss", amount: baseAmount });
-    if (axisGold) list.push({ key: "gold", amount: 100 });
-    if (axisSilver) list.push({ key: "silver", amount: 100 });
-    return list;
-  }, [edelweiss, axisGold, axisSilver, baseAmount]);
+    const keys: FundKey[] = [];
+    if (edelweiss) keys.push("edelweiss");
+    if (axisGold) keys.push("gold");
+    if (axisSilver) keys.push("silver");
 
-  const total = selected.reduce((sum, item) => sum + item.amount, 0);
-  const minimumTotal = selected.length * 100;
+    if (mode === "oneTime") {
+      const equalAmount = keys.length ? oneTimeAmount / keys.length : 0;
+      return keys.map(key => ({ key, amount: equalAmount }));
+    }
+
+    return keys.map(key => ({
+      key,
+      amount: key === "edelweiss" ? baseAmount : 100
+    }));
+  }, [edelweiss, axisGold, axisSilver, baseAmount, mode, oneTimeAmount]);
+
+  const total = mode === "oneTime"
+    ? oneTimeAmount
+    : selected.reduce((sum, item) => sum + item.amount, 0);
 
   const goldAmount = selected.reduce(
     (sum, item) => sum + item.amount * funds[item.key].gold / 100,
@@ -64,6 +75,11 @@ export default function PrototypeOne() {
   const silverPercent = total ? silverAmount / total * 100 : 0;
 
   const setPreset = (value: number) => {
+    if (mode === "oneTime") {
+      setOneTimeAmount(value);
+      return;
+    }
+
     const minimumEdelweiss = edelweiss ? 100 : 0;
     const axisCount = Number(axisGold) + Number(axisSilver);
     const nextEdelweiss = Math.max(minimumEdelweiss, value - axisCount * 100);
@@ -89,7 +105,7 @@ export default function PrototypeOne() {
       <div className="phone">
         <header className="sip-header">
           <button className="back" aria-label="Back">←</button>
-          <h1>Edit SIP details</h1>
+          <h1>{mode === "oneTime" ? "Investing in Sona-Chandi" : "Edit SIP details"}</h1>
           <button className="help" onClick={() => setSheet(true)} aria-label="Help">?</button>
         </header>
 
@@ -99,21 +115,49 @@ export default function PrototypeOne() {
         </div>
 
         <section className="amount-section">
+          {mode === "oneTime" && <div className="enter-label">Enter amount</div>}
+
           <div className="amount-control">
-            <button onClick={() => setBaseAmount(v => Math.max(100, v - 100))} disabled={!edelweiss || baseAmount <= 100}>−</button>
-            <strong>₹{total.toLocaleString("en-IN")}</strong>
-            <button onClick={() => setBaseAmount(v => Math.min(3000, v + 100))} disabled={!edelweiss}>+</button>
+            <button
+              onClick={() => mode === "oneTime"
+                ? setOneTimeAmount(v => Math.max(1000, v - 1000))
+                : setBaseAmount(v => Math.max(100, v - 100))}
+              disabled={mode === "oneTime" ? oneTimeAmount <= 1000 : !edelweiss || baseAmount <= 100}
+            >−</button>
+
+            {mode === "oneTime" ? (
+              <input
+                className="amount-input"
+                type="number"
+                min="1000"
+                max="300000"
+                step="100"
+                value={oneTimeAmount}
+                onChange={e => setOneTimeAmount(Math.max(1000, Math.min(300000, Number(e.target.value) || 1000)))}
+                aria-label="One-time investment amount"
+              />
+            ) : (
+              <strong>₹{total.toLocaleString("en-IN")}</strong>
+            )}
+
+            <button
+              onClick={() => mode === "oneTime"
+                ? setOneTimeAmount(v => Math.min(300000, v + 1000))
+                : setBaseAmount(v => Math.min(3000, v + 100))}
+              disabled={mode === "oneTime" ? oneTimeAmount >= 300000 : !edelweiss}
+            >+</button>
           </div>
 
           <div className="presets">
-            {presets.map(value => (
+            {(mode === "oneTime" ? [1000, 5000, 10000, 15000, 20000] : presets).map(value => (
               <button
                 key={value}
-                className={baseAmount === value ? "preset selected" : "preset"}
+                className={(mode === "oneTime" ? oneTimeAmount === value : baseAmount === value) ? "preset selected" : "preset"}
                 onClick={() => setPreset(value)}
               >
                 ₹{value.toLocaleString("en-IN")}
-                {value === 100 && <small>Min</small>}
+                {value === 1000 && mode === "oneTime" && <small>Min</small>}
+                {value === 100 && mode === "sip" && <small>Min</small>}
               </button>
             ))}
           </div>
@@ -121,17 +165,19 @@ export default function PrototypeOne() {
           <input
             className="range"
             type="range"
-            min={edelweiss ? 100 : 100}
-            max="3000"
-            step="100"
-            value={baseAmount}
-            onChange={e => setBaseAmount(Number(e.target.value))}
-            aria-label="SIP amount"
+            min={mode === "oneTime" ? 1000 : 100}
+            max={mode === "oneTime" ? 300000 : 3000}
+            step={mode === "oneTime" ? 1000 : 100}
+            value={mode === "oneTime" ? oneTimeAmount : baseAmount}
+            onChange={e => mode === "oneTime"
+              ? setOneTimeAmount(Number(e.target.value))
+              : setBaseAmount(Number(e.target.value))}
+            aria-label={mode === "oneTime" ? "One-time investment amount" : "SIP amount"}
           />
 
           <div className="range-labels">
-            <span>₹100</span>
-            <span>₹3,000</span>
+            <span>₹{mode === "oneTime" ? "1,000" : "100"}</span>
+            <span>₹{mode === "oneTime" ? "3,00,000" : "3,000"}</span>
           </div>
 
           {mode === "sip" && (
@@ -164,19 +210,19 @@ export default function PrototypeOne() {
         <section className="fund-list">
           <FundCard
             title="Gold+Silver"
-            subtitle={`Investing: ₹${baseAmount.toFixed(2)}`}
+            subtitle={edelweiss ? `Investing: ₹${(selected.find(x => x.key === "edelweiss")?.amount ?? 0).toFixed(2)}` : "Not investing in Gold+Silver"}
             selected={edelweiss}
             onClick={() => toggleFund("edelweiss")}
           />
           <FundCard
             title="Only Gold"
-            subtitle={axisGold ? "Investing: ₹100.00" : "Not investing in only gold"}
+            subtitle={axisGold ? `Investing: ₹${(selected.find(x => x.key === "gold")?.amount ?? 0).toFixed(2)}` : "Not investing in only gold"}
             selected={axisGold}
             onClick={() => toggleFund("gold")}
           />
           <FundCard
             title="Only Silver"
-            subtitle={axisSilver ? "Investing: ₹100.00" : "Not investing in only silver"}
+            subtitle={axisSilver ? `Investing: ₹${(selected.find(x => x.key === "silver")?.amount ?? 0).toFixed(2)}` : "Not investing in only silver"}
             selected={axisSilver}
             onClick={() => toggleFund("silver")}
           />
@@ -188,7 +234,7 @@ export default function PrototypeOne() {
         </div>
 
         <footer>
-          <button className="proceed" onClick={() => setSheet(true)}>{mode === "oneTime" ? `Invest ₹${total.toLocaleString("en-IN")}` : "Proceed"}</button>
+          <button className="proceed" onClick={() => setSheet(true)}>{mode === "oneTime" ? "Continue" : "Proceed"}</button>
         </footer>
 
         {sheet && (
