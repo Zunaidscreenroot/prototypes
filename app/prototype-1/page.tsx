@@ -202,7 +202,7 @@ export default function PrototypeOne() {
               const nextFrequency = e.target.value;
               const nextMinimum = nextFrequency === "Daily" ? 100 : nextFrequency === "Weekly" ? 1000 : 5000;
               setFrequency(nextFrequency);
-              setBaseAmount(v => Math.max(nextMinimum, selectedCount * 100, v));
+              setBaseAmount(Math.max(nextMinimum, selectedCount * 100));
             }}
           >
             <option>Daily</option>
