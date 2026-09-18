@@ -142,11 +142,10 @@ export default function PrototypeOne() {
 
           <div className="amount-control">
             <button
-              disabled={!!amountError}
               onClick={() => mode === "oneTime"
                 ? (() => { const next = Math.max(1000, oneTimeAmount - 1000); setOneTimeAmount(next); setOneTimeInput(String(next)); })()
                 : (() => { const next = Math.max(sipMinimum, baseAmount - sipStep); setBaseAmount(next); setSipInput(String(next)); })()}
-              disabled={mode === "oneTime" ? oneTimeAmount <= 1000 : baseAmount <= sipMinimum}
+              disabled={!!amountError || (mode === "oneTime" ? oneTimeAmount <= 1000 : baseAmount <= sipMinimum)}
             >−</button>
 
             {mode === "oneTime" ? (
