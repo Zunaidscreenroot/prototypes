@@ -43,3 +43,30 @@ button,input{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:tran
 .withdraw-amount-input[type=number]{-moz-appearance:textfield}
 .withdraw-page.dark .withdraw-amount-input{color:#f1f1f3}
 .withdraw-page.dark .withdraw-amount-input::selection{background:#66647f}
+
+/* Paytm Money-inspired dark color palette — colors only */
+.withdraw-page.dark{background:#0b0d0f;color:#f5f7f9}
+.withdraw-page.dark .withdraw-phone{background:#111315;color:#f5f7f9}
+.withdraw-page.dark .withdraw-header{background:#111315}
+.withdraw-page.dark .withdraw-header h1,.withdraw-page.dark .withdraw-back,.withdraw-page.dark .withdraw-help{color:#f5f7f9}
+.withdraw-page.dark .investment-list,.withdraw-page.dark .withdraw-controls{background:#111315}
+.withdraw-page.dark .investment-card{background:#1a1d21;color:#eef1f4;border-color:#30343a}
+.withdraw-page.dark .investment-card.active{border-color:#00baf2;box-shadow:0 0 0 1px #007fa8}
+.withdraw-page.dark .investment-values span,.withdraw-page.dark .withdraw-label,.withdraw-page.dark .withdraw-range-labels{color:#9da5ae}
+.withdraw-page.dark .investment-values strong{color:#eef1f4}
+.withdraw-page.dark .withdraw-amount button,.withdraw-page.dark .withdraw-amount strong,.withdraw-page.dark .withdraw-amount-input{color:#f5f7f9}
+.withdraw-page.dark .withdraw-preset{background:#1a1d21;color:#b8bec6;border-color:#30343a}
+.withdraw-page.dark .withdraw-preset.selected{background:#00baf2;color:#061014;border-color:#00baf2}
+.withdraw-page.dark .withdraw-range{background:linear-gradient(to right,#00baf2 0%,#00baf2 var(--withdraw-progress,50%),#353a40 var(--withdraw-progress,50%),#353a40 100%)}
+.withdraw-page.dark .withdraw-range::-webkit-slider-thumb{background:#00baf2;border-color:#111315}
+.withdraw-page.dark .withdraw-range::-moz-range-progress{background:#00baf2}
+.withdraw-page.dark .withdraw-range::-moz-range-thumb{background:#00baf2;border-color:#111315}
+.withdraw-page.dark .withdraw-footer{background:linear-gradient(to bottom,rgba(17,19,21,.7),#111315 25%)}
+.withdraw-page.dark .tax-pill{background:#20242a;color:#b8bec6}
+.withdraw-page.dark .tax-pill span{border-color:#5e666f}
+.withdraw-page.dark .withdraw-footer p{color:#9da5ae}
+.withdraw-page.dark .withdraw-footer p strong{color:#f5f7f9}
+.withdraw-page.dark .bank-icon{background:#30343a;color:#b8bec6}
+.withdraw-page.dark .withdraw-button{background:#00baf2;color:#061014}
+.withdraw-page.dark .withdraw-theme-toggle{background:#1a1d21;color:#f5f7f9;border-color:#3a4047}
+.withdraw-page.dark .withdraw-amount-input::selection{background:#007fa8}

@@ -50,3 +50,42 @@
 .sip-page.dark .allocation-block{background:#292a30}
 .sip-page.dark .sheet-button{background:#66647f;color:#fff}
 .sip-page.dark .sheet-button:active{background:#777594}
+
+/* Paytm Money-inspired dark color palette — colors only */
+.sip-page.dark{background:#0b0d0f;color:#f5f7f9}
+.sip-page.dark .phone{background:#111315;color:#f5f7f9}
+.sip-page.dark .sip-header,.sip-page.dark .tabs,.sip-page.dark .amount-section,.sip-page.dark .fund-list,.sip-page.dark footer{background:#111315}
+.sip-page.dark .sip-header h1,.sip-page.dark .back,.sip-page.dark .help,.sip-page.dark .amount-control,.sip-page.dark .amount-control button{color:#f5f7f9}
+.sip-page.dark .tabs{border-bottom-color:#2b2f34}
+.sip-page.dark .tab{background:#111315;color:#b8bec6}
+.sip-page.dark .tab.active{background:#00baf2;color:#061014}
+.sip-page.dark .preset,.sip-page.dark .frequency,.sip-page.dark .fund-card,.sip-page.dark .nav-card,.sip-page.dark .payment-card{background:#1a1d21;color:#eef1f4;border-color:#30343a}
+.sip-page.dark .preset{color:#b8bec6}
+.sip-page.dark .preset.selected{background:#00baf2;color:#061014;border-color:#00baf2}
+.sip-page.dark .preset small{background:#111315;color:#9da5ae}
+.sip-page.dark .range-labels,.sip-page.dark .payment-card span,.sip-page.dark .nav-card,.sip-page.dark .fund-copy span{color:#9da5ae}
+.sip-page.dark .fund-copy b{color:#eef1f4}
+.sip-page.dark .payment-card p{background:#20242a;color:#b8bec6}
+.sip-page.dark .payment-card strong{color:#f5f7f9}
+.sip-page.dark .frequency{color:#eef1f4}
+.sip-page.dark .fund-card.selected-fund{border-color:#00baf2}
+.sip-page.dark .checkbox{border-color:#00baf2;color:#00baf2}
+.sip-page.dark .investing-pill{background:#20242a}
+.sip-page.dark .investing-pill button{border-color:#4b525a;color:#00baf2;background:#eef8fb}
+.sip-page.dark .amount-input{color:#f5f7f9}
+.sip-page.dark .amount-input::selection{background:#007fa8}
+.sip-page.dark .screenroot-label{color:#8d959e}
+.sip-page.dark .theme-toggle{background:#1a1d21;color:#f5f7f9;border-color:#3a4047}
+.sip-page.dark .overlay{background:rgba(0,0,0,.82)}
+.sip-page.dark .sheet{background:#15181b;color:#eef1f4}
+.sip-page.dark .detail-card{background:#1d2024;border-color:#30343a}
+.sip-page.dark .provider,.sip-page.dark .allocation{color:#b8bec6}
+.sip-page.dark .allocation b{color:#f5f7f9}
+.sip-page.dark .sheet-button{background:#00baf2;color:#061014}
+.sip-page.dark .range{background:linear-gradient(to right,#00baf2 0%,#00baf2 var(--range-progress,0%),#353a40 var(--range-progress,0%),#353a40 100%)}
+.sip-page.dark .range::-webkit-slider-thumb{background:#00baf2;border-color:#111315}
+.sip-page.dark .range::-moz-range-progress{background:#00baf2}
+.sip-page.dark .range::-moz-range-thumb{background:#00baf2;border-color:#111315}
+.sip-page.dark .handle{background:#5e666f}
+.sip-page.dark .allocation-block{background:#20242a}
+.sip-page.dark .sheet-button:active{background:#00a7d8}
