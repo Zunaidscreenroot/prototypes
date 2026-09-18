@@ -34,6 +34,7 @@ export default function PrototypeTwo() {
   const [selectedId, setSelectedId] = useState("edelweiss");
   const selected = investments.find(item => item.id === selectedId) ?? investments[0];
   const [withdrawPercent, setWithdrawPercent] = useState(50);
+  const [dark, setDark] = useState(false);
 
   const withdrawAmount = useMemo(
     () => Math.round(selected.balance * withdrawPercent / 100),
@@ -46,8 +47,9 @@ export default function PrototypeTwo() {
   };
 
   return (
-    <main className="withdraw-page">
+    <main className={dark ? "withdraw-page dark" : "withdraw-page"}>
       <div className="screenroot-label">SCREENROOT · PROTOTYPE TESTS</div>
+      <button className="withdraw-theme-toggle" onClick={() => setDark(v => !v)} aria-label="Toggle theme">{dark ? "☀" : "☾"}</button>
 
       <div className="withdraw-phone">
         <header className="withdraw-header">
@@ -107,6 +109,7 @@ export default function PrototypeTwo() {
             max="100"
             step="5"
             value={withdrawPercent}
+            style={{ "--withdraw-progress": `${withdrawPercent}%` } as React.CSSProperties}
             onChange={e => setWithdrawPercent(Number(e.target.value))}
             aria-label="Withdrawal percentage"
           />

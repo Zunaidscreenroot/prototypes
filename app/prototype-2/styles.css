@@ -7,3 +7,33 @@ button,input{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:tran
 .investment-list{display:grid;gap:10px;padding:10px 16px 0}.investment-card{width:100%;height:71px;padding:12px;display:grid;grid-template-columns:21px 1fr auto;align-items:center;gap:9px;border:1.5px solid #ddd;background:#fff;border-radius:9px;text-align:left;color:#222}.investment-card.active{border:2px solid #dedede;box-shadow:0 0 0 1px #eee}.fund-icon{width:20px;height:20px;display:grid;place-items:center;color:#555;font-size:13px}.fund-icon.blue{border:1px solid #999;border-radius:50%;font-size:10px}.investment-name{font-size:11px;line-height:1.2;max-width:145px}.investment-values{display:grid;justify-items:end;gap:3px;white-space:nowrap}.investment-values strong{font-size:11px}.investment-values span{font-size:10px}
 .withdraw-controls{padding:12px 16px 0}.withdraw-label{margin:0;text-align:center;color:#777;font-size:11px}.withdraw-amount{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin-top:2px}.withdraw-amount button{border:0;background:none;font-size:27px;padding:0}.withdraw-amount button:first-child{text-align:right}.withdraw-amount strong{min-width:145px;text-align:center;font-size:29px;font-weight:500;letter-spacing:-.045em}.withdraw-presets{display:flex;justify-content:center;gap:6px;margin:10px 0 14px;white-space:nowrap}.withdraw-preset{height:24px;padding:0 8px;border:1px solid #ccc;border-radius:999px;background:#fff;color:#666;font-size:9px}.withdraw-preset.selected{background:#4a4a4a;color:#fff;border-color:#4a4a4a}.withdraw-range{width:100%;height:4px;margin:0;accent-color:#1b1b1b}.withdraw-range-labels{display:flex;justify-content:space-between;margin-top:7px;color:#666;font-size:10px}
 .withdraw-footer{position:absolute;left:0;right:0;bottom:0;height:171px;padding:20px 16px 30px;background:linear-gradient(to bottom,rgba(255,255,255,.7),#fff 25%)}.tax-pill{width:max-content;margin:0 auto 14px;padding:5px 10px;border-radius:14px;background:#f0f0f0;color:#444;font-size:10px}.tax-pill span{display:inline-grid;place-items:center;width:13px;height:13px;border:1px solid #999;border-radius:50%;margin-left:3px;font-size:8px}.withdraw-footer p{margin:0 0 17px;text-align:center;color:#777;font-size:10px}.withdraw-footer p strong{color:#222}.bank-icon{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;background:#ddd;color:#666;font-size:8px;margin-right:3px}.withdraw-button{width:100%;height:42px;border:0;border-radius:4px;background:#484848;color:#fff;font-size:12px;font-weight:700}@media(min-width:700px){.withdraw-page{padding:30px}.withdraw-phone{box-shadow:0 10px 40px #0001}}
+.withdraw-theme-toggle{position:fixed;top:10px;left:10px;z-index:31;width:28px;height:28px;border:1px solid #bdbdc4;border-radius:50%;background:#fff;color:#222;display:grid;place-items:center;font-size:14px;box-shadow:0 2px 8px #0001}
+.withdraw-page.dark{background:#101114;color:#f1f1f3}
+.withdraw-page.dark .withdraw-phone{background:#15161a;color:#f1f1f3;box-shadow:0 10px 40px #0006}
+.withdraw-page.dark .withdraw-header{background:#15161a}
+.withdraw-page.dark .withdraw-header h1,.withdraw-page.dark .withdraw-back,.withdraw-page.dark .withdraw-help{color:#f1f1f3}
+.withdraw-page.dark .investment-list,.withdraw-page.dark .withdraw-controls{background:#15161a}
+.withdraw-page.dark .investment-card{background:#1d1e23;color:#e8e8ec;border-color:#3b3c43}
+.withdraw-page.dark .investment-card.active{border-color:#686973;box-shadow:0 0 0 1px #34353c}
+.withdraw-page.dark .investment-values span,.withdraw-page.dark .withdraw-label,.withdraw-page.dark .withdraw-range-labels{color:#bcbcc5}
+.withdraw-page.dark .withdraw-amount button,.withdraw-page.dark .withdraw-amount strong{color:#f1f1f3}
+.withdraw-page.dark .withdraw-preset{background:#1d1e23;color:#c5c5cc;border-color:#4a4b53}
+.withdraw-page.dark .withdraw-preset.selected{background:#66647f;color:#fff;border-color:#66647f}
+.withdraw-range{appearance:none;-webkit-appearance:none;background:linear-gradient(to right,#4a4965 0%,#4a4965 var(--withdraw-progress,50%),#d0d0d5 var(--withdraw-progress,50%),#d0d0d5 100%);border-radius:999px}
+.withdraw-range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:transparent}
+.withdraw-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:#4a4965;border:2px solid #fff}
+.withdraw-range::-moz-range-track{height:4px;border-radius:999px;background:transparent}
+.withdraw-range::-moz-range-progress{height:4px;border-radius:999px;background:#4a4965}
+.withdraw-range::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#4a4965;border:2px solid #fff}
+.withdraw-page.dark .withdraw-range{background:linear-gradient(to right,#8b89a8 0%,#8b89a8 var(--withdraw-progress,50%),#3b3c43 var(--withdraw-progress,50%),#3b3c43 100%)}
+.withdraw-page.dark .withdraw-range::-webkit-slider-thumb{background:#8b89a8;border-color:#191a1e}
+.withdraw-page.dark .withdraw-range::-moz-range-progress{background:#8b89a8}
+.withdraw-page.dark .withdraw-range::-moz-range-thumb{background:#8b89a8;border-color:#191a1e}
+.withdraw-page.dark .withdraw-footer{background:linear-gradient(to bottom,rgba(21,22,26,.7),#15161a 25%)}
+.withdraw-page.dark .tax-pill{background:#292a30;color:#c5c5cc}
+.withdraw-page.dark .tax-pill span{border-color:#686a73}
+.withdraw-page.dark .withdraw-footer p{color:#bcbcc5}
+.withdraw-page.dark .withdraw-footer p strong{color:#f1f1f3}
+.withdraw-page.dark .bank-icon{background:#3b3c43;color:#c5c5cc}
+.withdraw-page.dark .withdraw-button{background:#66647f;color:#fff}
+.withdraw-page.dark .withdraw-theme-toggle{background:#27282d;color:#fff;border-color:#55565e}
