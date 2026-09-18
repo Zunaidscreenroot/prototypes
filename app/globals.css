@@ -89,3 +89,15 @@
 .sip-page.dark .handle{background:#5e666f}
 .sip-page.dark .allocation-block{background:#20242a}
 .sip-page.dark .sheet-button:active{background:#00a7d8}
+
+/* Final dark-theme color overrides */
+.sip-page.dark .proceed{background:#00baf2;color:#061014}
+.sip-page.dark .tab.active{background:#00baf2;color:#061014}
+.sip-page.dark .preset.selected{background:#00baf2;color:#061014;border-color:#00baf2}
+.sip-page.dark .sheet-button{background:#00baf2;color:#061014}
+.sip-page.dark .range,.sip-page.dark .range::-moz-range-progress{accent-color:#00baf2}
+.sip-page.dark .range::-webkit-slider-thumb,.sip-page.dark .range::-moz-range-thumb{background:#00baf2}
+.withdraw-page.dark .withdraw-button{background:#00baf2;color:#061014}
+.withdraw-page.dark .withdraw-preset.selected{background:#00baf2;color:#061014;border-color:#00baf2}
+.withdraw-page.dark .withdraw-range,.withdraw-page.dark .withdraw-range::-moz-range-progress{accent-color:#00baf2}
+.withdraw-page.dark .withdraw-range::-webkit-slider-thumb,.withdraw-page.dark .withdraw-range::-moz-range-thumb{background:#00baf2}
