@@ -5,16 +5,17 @@ import { useEffect, useState } from "react";
 type RiskProfile = {
   name: string;
   tag: string;
-  score: number;
   thought: string;
+  timeScore: number;
+  riskScore: number;
 };
 
 const descriptions: Record<string, string> = {
-  Conservative: "You seem more focused on protecting your money and keeping short-term fluctuations manageable.",
-  "Moderately Conservative": "You seem to value stability while having some room to accept investment fluctuations.",
-  Balanced: "You appear comfortable balancing stability with the possibility of higher long-term fluctuations.",
-  Growth: "You appear more comfortable accepting short-term fluctuations for longer-term growth potential.",
-  Aggressive: "Your answers suggest a relatively high comfort with fluctuations and a longer investment horizon."
+  Conservative: "Focus on capital preservation and lower risk tolerance.",
+  "Moderately Conservative": "Income with low growth and lower volatility.",
+  Balanced: "Balance of growth and income with moderate risk.",
+  Growth: "Strong long-term growth with higher volatility.",
+  Aggressive: "Maximum long-term growth with high volatility tolerance."
 };
 
 export default function RiskProfileDetails() {
@@ -48,7 +49,7 @@ export default function RiskProfileDetails() {
       <div className="risk-phone">
         <header className="risk-header">
           <button className="risk-back" onClick={() => { window.location.href = "/prototype-1"; }}>←</button>
-          <div className="risk-progress"><strong style={{fontSize: "11px"}}>Your investor profile</strong></div>
+          <div className="risk-progress"><strong style={{fontSize:"11px"}}>Your investor profile</strong></div>
           <span />
         </header>
 
@@ -57,25 +58,22 @@ export default function RiskProfileDetails() {
           <div className="risk-eyebrow">YOUR INVESTOR RISK PROFILE</div>
           <h1>{profile.name}</h1>
           <span className="profile-tag">{profile.tag}</span>
-          <p className="result-description">{descriptions[profile.name] ?? "Your profile is a guide to your risk preference."}</p>
+          <p className="result-description">{descriptions[profile.name]}</p>
 
           <div className="status-card">
-            <span>PROFILE SUMMARY</span>
-            <strong>{profile.tag}</strong>
+            <span>PROFILE MATRIX RESULT</span>
+            <strong>{profile.name}</strong>
             <p>{profile.thought}</p>
           </div>
 
           <div className="score-card">
             <div>
-              <span>Profile score</span>
-              <strong>{profile.score}<small> / 35</small></strong>
+              <span>Time Horizon</span>
+              <strong>{profile.timeScore}<small> / 36</small></strong>
             </div>
-            <div className="score-scale">
-              <span>Lower</span>
-              <div className="score-line">
-                <i style={{ left: `${((profile.score - 7) / 28) * 100}%` }} />
-              </div>
-              <span>Higher</span>
+            <div>
+              <span>Risk Score</span>
+              <strong>{profile.riskScore}<small> / 40</small></strong>
             </div>
           </div>
 
