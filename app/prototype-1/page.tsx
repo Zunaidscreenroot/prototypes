@@ -193,11 +193,22 @@ export default function PrototypeOne() {
 
         <section className={riskProfile ? "risk-nudge has-profile" : "risk-nudge"}>
           <div className="risk-nudge-copy">
-            <span>RISK PROFILE</span>
-            <strong>{riskProfile ? `You’re ${riskProfile.name}` : "Know your investor profile?"}</strong>
-            <p>{riskProfile ? "Use your profile as a guide while choosing how much to invest." : "Answer 7 quick questions to understand your risk preference."}</p>
+            <span>YOUR INVESTOR PROFILE</span>
+            <strong>{riskProfile ? riskProfile.name : "Know your investor profile?"}</strong>
+            <p>{riskProfile
+              ? riskProfile.thought
+              : "Answer a few quick questions to understand your risk preference."}</p>
           </div>
-          <a href={riskProfile ? "/risk-profile/details" : "/risk-profile"}>{riskProfile ? "View" : "Check now"}</a>
+          {riskProfile ? (
+            <button
+              className="risk-retake"
+              onClick={() => { window.location.href = "/risk-profile"; }}
+              aria-label="Retake risk profile"
+              title="Retake risk profile"
+            >↻</button>
+          ) : (
+            <a href="/risk-profile">Check now</a>
+          )}
         </section>
 
         <section className="amount-section">
