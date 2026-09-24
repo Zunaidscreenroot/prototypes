@@ -4,21 +4,21 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 const funds = {
   edelweiss: {
-    title: "Gold+Silver",
-    provider: "Edelweiss Gold and Silver ETF Fund of Funds",
+    title: "Edelweiss Gold + Silver FoF",
+    provider: "Edelweiss Gold + Silver FoF",
     gold: 50,
     silver: 50,
     min: 100
   },
   gold: {
-    title: "Only Gold",
+    title: "HDFC Gold Fund",
     provider: "HDFC Gold Fund",
     gold: 100,
     silver: 0,
-    min: 100
+    min: 50
   },
   silver: {
-    title: "Only Silver",
+    title: "Nippon Silver Fund",
     provider: "Nippon Silver Fund",
     gold: 0,
     silver: 100,
@@ -35,11 +35,8 @@ const formatAmount = (value: number) => value.toLocaleString("en-IN", { maximumF
 const parseAmount = (value: string) => Number(value.replace(/[^0-9]/g, "")) || 0;
 
 export default function PrototypeOne() {
-  const [edelweiss, setEdelweiss] = useState(true);
-  const [axisGold, setAxisGold] = useState(true);
-  const [axisSilver, setAxisSilver] = useState(true);
-  const [baseAmount, setBaseAmount] = useState(300);
   const [fundAmounts, setFundAmounts] = useState({ edelweiss: 100, gold: 100, silver: 100 });
+  const [baseAmount, setBaseAmount] = useState(300);
   const [riskProfile, setRiskProfile] = useState<{ name: string; tag: string; score: number; thought: string } | null>(null);
   const [frequency, setFrequency] = useState("Daily");
   const [sheet, setSheet] = useState(false);
@@ -49,16 +46,15 @@ export default function PrototypeOne() {
   const [oneTimeInput, setOneTimeInput] = useState("45000");
   const [sipInput, setSipInput] = useState("300");
 
-  const selected = useMemo(() => {
-    const keys: FundKey[] = [];
-    if (edelweiss) keys.push("edelweiss");
-    if (axisGold) keys.push("gold");
-    if (axisSilver) keys.push("silver");
-    return keys.map(key => ({ key, amount: fundAmounts[key] }));
-  }, [edelweiss, axisGold, axisSilver, fundAmounts]);
+  const selected = useMemo(
+    () => (Object.keys(fundAmounts) as FundKey[])
+      .filter(key => fundAmounts[key] > 0)
+      .map(key => ({ key, amount: fundAmounts[key] })),
+    [fundAmounts]
+  );
 
-  const selectedCount = Number(edelweiss) + Number(axisGold) + Number(axisSilver);
-  const frequencyMinimum = frequency === "Daily" ? 100 : frequency === "Weekly" ? 1000 : 5000;
+  const selectedCount = selected.length;
+  const frequencyMinimum = frequency === "Daily" ? 50 : frequency === "Weekly" ? 1000 : 5000;
   const frequencyMaximum = frequency === "Daily" ? 2000 : frequency === "Weekly" ? 20000 : 50000;
   const sipMinimum = Math.max(frequencyMinimum, selectedCount * 100);
   const sipMaximum = frequencyMaximum;
@@ -73,46 +69,59 @@ export default function PrototypeOne() {
       ? `Minimum amount is ₹${formatAmount(minimumAmount)}`
       : "";
 
-  const distributeTotal = (value: number, activeKeys: FundKey[]) => {
-    const minimumPerFund = 100;
-    const minimumTotal = activeKeys.length * minimumPerFund;
-    const safeTotal = Math.max(minimumTotal, Math.round(value / 100) * 100);
+  const distributeTotal = (value: number) => {
+    const safeTotal = Math.min(sipMaximum, Math.max(frequencyMinimum, Math.round(value / 50) * 50));
     const next = { edelweiss: 0, gold: 0, silver: 0 };
-    activeKeys.forEach(key => { next[key] = minimumPerFund; });
-    let remaining = safeTotal - minimumTotal;
-    let index = 0;
-    while (remaining >= 100 && activeKeys.length) {
-      next[activeKeys[index % activeKeys.length]] += 100;
-      remaining -= 100;
-      index += 1;
+
+    // Keep manual entry valid at every amount:
+    // ₹50–₹100 uses HDFC only; ₹150 uses one ₹100 fund + HDFC ₹50;
+    // ₹200 uses two ₹100 funds; ₹250+ starts all three at their minimums.
+    if (safeTotal < 100) {
+      next.gold = 50;
+    } else if (safeTotal < 150) {
+      next.gold = 100;
+    } else if (safeTotal < 200) {
+      next.edelweiss = 100;
+      next.gold = safeTotal - 100;
+    } else if (safeTotal < 250) {
+      next.edelweiss = 100;
+      next.gold = 100;
+    } else {
+      next.edelweiss = 100;
+      next.gold = 50;
+      next.silver = 100;
+      let remaining = safeTotal - 250;
+      const keys: FundKey[] = ["edelweiss", "gold", "silver"];
+      let index = 0;
+      while (remaining >= 50) {
+        next[keys[index % keys.length]] += 50;
+        remaining -= 50;
+        index += 1;
+      }
     }
+
     setFundAmounts(next);
     setBaseAmount(safeTotal);
     setSipInput(String(safeTotal));
   };
 
   const setTotalAmount = (value: number) => {
-    const activeKeys: FundKey[] = [];
-    if (edelweiss) activeKeys.push("edelweiss");
-    if (axisGold) activeKeys.push("gold");
-    if (axisSilver) activeKeys.push("silver");
-    distributeTotal(value, activeKeys.length ? activeKeys : ["edelweiss", "gold", "silver"]);
+    distributeTotal(value);
   };
 
   const adjustFund = (key: FundKey, delta: number) => {
     const current = fundAmounts[key];
-    const nextAmount = Math.max(0, current + delta);
+    const minimum = funds[key].min;
+    let nextAmount = Math.max(0, current + delta);
+
+    // A fund can only move between 0 and its configured minimum/valid increments.
+    if (current === 0 && delta > 0) nextAmount = minimum;
+    if (current > 0 && nextAmount > 0 && nextAmount < minimum) nextAmount = minimum;
+
     setFundAmounts(prev => ({ ...prev, [key]: nextAmount }));
-    if (nextAmount === 0) {
-      if (key === "edelweiss") setEdelweiss(false);
-      if (key === "gold") setAxisGold(false);
-      if (key === "silver") setAxisSilver(false);
-    } else {
-      if (key === "edelweiss") setEdelweiss(true);
-      if (key === "gold") setAxisGold(true);
-      if (key === "silver") setAxisSilver(true);
-    }
-    const nextTotal = selected.reduce((sum, item) => sum + item.amount, 0) - current + nextAmount;
+
+    const nextAmounts = { ...fundAmounts, [key]: nextAmount };
+    const nextTotal = Object.values(nextAmounts).reduce((sum, amount) => sum + amount, 0);
     setBaseAmount(nextTotal);
     setSipInput(String(nextTotal));
   };
@@ -151,17 +160,6 @@ export default function PrototypeOne() {
     setTotalAmount(next);
   };
 
-  const toggleFund = (key: FundKey) => {
-    const currentlySelected =
-      key === "edelweiss" ? edelweiss : key === "gold" ? axisGold : axisSilver;
-
-    if (currentlySelected) {
-      adjustFund(key, -fundAmounts[key]);
-      return;
-    }
-
-    adjustFund(key, 100);
-  };
 
   const allocation = [
     { label: "Gold", amount: goldAmount, percent: goldPercent },
@@ -191,7 +189,7 @@ export default function PrototypeOne() {
             <strong>{riskProfile ? `You’re ${riskProfile.name}` : "Know your investor profile?"}</strong>
             <p>{riskProfile ? "Use your profile as a guide while choosing how much to invest." : "Answer 7 quick questions to understand your risk preference."}</p>
           </div>
-          <a href="/risk-profile">{riskProfile ? "View" : "Check now"}</a>
+          <a href={riskProfile ? "/risk-profile/details" : "/risk-profile"}>{riskProfile ? "View" : "Check now"}</a>
         </section>
 
         <section className="amount-section">
@@ -284,9 +282,8 @@ export default function PrototypeOne() {
               const nextMinimum = nextFrequency === "Daily" ? 100 : nextFrequency === "Weekly" ? 1000 : 5000;
               const nextMaximum = nextFrequency === "Daily" ? 2000 : nextFrequency === "Weekly" ? 20000 : 50000;
               setFrequency(nextFrequency);
-              const nextAmount = Math.min(nextMaximum, Math.max(nextMinimum, selectedCount * 100));
-              setBaseAmount(nextAmount);
-              setSipInput(String(nextAmount));
+              const nextAmount = Math.min(nextMaximum, Math.max(nextMinimum, total));
+              distributeTotal(nextAmount);
             }}
           >
             <option>Daily</option>
@@ -312,38 +309,30 @@ export default function PrototypeOne() {
 
         <section className={amountError ? "fund-list inactive" : "fund-list"}>
           <FundCard
-            title="Gold + Silver"
-            subtitle="Edelweiss · 50% Gold / 50% Silver"
+            title={funds.edelweiss.title}
+            subtitle=""
             amount={fundAmounts.edelweiss}
-            selected={edelweiss}
-            onClick={() => toggleFund("edelweiss")}
+            minimum={funds.edelweiss.min}
             onMinus={() => adjustFund("edelweiss", -100)}
             onPlus={() => adjustFund("edelweiss", 100)}
           />
           <FundCard
-            title="Gold"
-            subtitle="HDFC Gold Fund"
+            title={funds.gold.title}
+            subtitle=""
             amount={fundAmounts.gold}
-            selected={axisGold}
-            onClick={() => toggleFund("gold")}
-            onMinus={() => adjustFund("gold", -100)}
-            onPlus={() => adjustFund("gold", 100)}
+            minimum={funds.gold.min}
+            onMinus={() => adjustFund("gold", -50)}
+            onPlus={() => adjustFund("gold", 50)}
           />
           <FundCard
-            title="Silver"
-            subtitle="Nippon Silver Fund"
+            title={funds.silver.title}
+            subtitle=""
             amount={fundAmounts.silver}
-            selected={axisSilver}
-            onClick={() => toggleFund("silver")}
+            minimum={funds.silver.min}
             onMinus={() => adjustFund("silver", -100)}
             onPlus={() => adjustFund("silver", 100)}
           />
         </section>
-
-        <div className={amountError ? "investing-pill inactive" : "investing-pill"} onClick={() => { if (!amountError) setSheet(true); }}>
-          <span>Investing in</span>
-          <button aria-label="View allocation">✳</button>
-        </div>
 
         <footer>
           <button className="proceed" disabled={!!amountError || currentInput === ""} onClick={() => setSheet(true)}>{mode === "oneTime" ? "Continue" : "Proceed"}</button>
@@ -390,34 +379,34 @@ function FundCard({
   title,
   subtitle,
   amount,
-  selected,
-  onClick,
+  minimum,
   onMinus,
   onPlus
 }: {
   title: string;
   subtitle: string;
   amount: number;
-  selected: boolean;
-  onClick: () => void;
+  minimum: number;
   onMinus: () => void;
   onPlus: () => void;
 }) {
+  const selected = amount > 0;
+
   return (
     <div className={selected ? "fund-card selected-fund fund-card-editable" : "fund-card fund-card-editable"}>
-      <button className="fund-select" onClick={onClick} aria-label={selected ? `Remove ${title}` : `Add ${title}`}>
-        <span className="checkbox">{selected ? "✓" : ""}</span>
-        <span className="fund-copy">
-          <b>{title}</b>
-          <span>{subtitle}</span>
-        </span>
-      </button>
+      <div className="fund-copy">
+        <b>{title}</b>
+        {subtitle && <span>{subtitle}</span>}
+      </div>
       <div className="fund-amount-control">
-        <button onClick={onMinus} disabled={amount <= 0} aria-label={`Decrease ${title}`}>−</button>
+        <button
+          onClick={onMinus}
+          disabled={amount === 0}
+          aria-label={amount <= minimum ? `Remove ${title}` : `Decrease ${title}`}
+        >−</button>
         <strong>₹{formatAmount(amount)}</strong>
         <button onClick={onPlus} aria-label={`Increase ${title}`}>+</button>
       </div>
     </div>
   );
 }
-
