@@ -155,25 +155,6 @@ export default function RiskProfilePrototype() {
     [score]
   );
 
-  const fundPlan = useMemo(
-    () => calculateFundAllocation(monthlyAmount, profile.gold),
-    [monthlyAmount, profile.gold]
-  );
-
-  const blendedRate = useMemo(() => {
-    if (!fundPlan.allocation) return 0;
-    const total = monthlyAmount;
-    return (
-      (fundPlan.allocation.edelweiss * fundConfig.edelweiss.annualRate +
-        fundPlan.allocation.hdfcGold * fundConfig.hdfcGold.annualRate +
-        fundPlan.allocation.nipponSilver * fundConfig.nipponSilver.annualRate) /
-      total
-    );
-  }, [fundPlan, monthlyAmount]);
-
-  const threeYearValue = sipFutureValue(monthlyAmount, blendedRate, 3);
-  const fiveYearValue = sipFutureValue(monthlyAmount, blendedRate, 5);
-
   const selectAnswer = (answerScore: number) => {
     setSelected(answerScore);
   };
