@@ -1,25 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const funds = {
   edelweiss: {
     title: "Gold+Silver",
     provider: "Edelweiss Gold and Silver ETF Fund of Funds",
-    gold: 60,
-    silver: 40,
+    gold: 50,
+    silver: 50,
     min: 100
   },
   gold: {
     title: "Only Gold",
-    provider: "Axis Gold Fund",
+    provider: "HDFC Gold Fund",
     gold: 100,
     silver: 0,
     min: 100
   },
   silver: {
     title: "Only Silver",
-    provider: "Axis Silver Fund",
+    provider: "Nippon Silver Fund",
     gold: 0,
     silver: 100,
     min: 100
@@ -36,27 +36,26 @@ const parseAmount = (value: string) => Number(value.replace(/[^0-9]/g, "")) || 0
 
 export default function PrototypeOne() {
   const [edelweiss, setEdelweiss] = useState(true);
-  const [axisGold, setAxisGold] = useState(false);
-  const [axisSilver, setAxisSilver] = useState(false);
-  const [baseAmount, setBaseAmount] = useState(100);
+  const [axisGold, setAxisGold] = useState(true);
+  const [axisSilver, setAxisSilver] = useState(true);
+  const [baseAmount, setBaseAmount] = useState(300);
+  const [fundAmounts, setFundAmounts] = useState({ edelweiss: 100, gold: 100, silver: 100 });
+  const [riskProfile, setRiskProfile] = useState<{ name: string; tag: string; score: number; thought: string } | null>(null);
   const [frequency, setFrequency] = useState("Daily");
   const [sheet, setSheet] = useState(false);
   const [mode, setMode] = useState<"sip" | "oneTime">("sip");
   const [dark, setDark] = useState(false);
   const [oneTimeAmount, setOneTimeAmount] = useState(45000);
   const [oneTimeInput, setOneTimeInput] = useState("45000");
-  const [sipInput, setSipInput] = useState("100");
+  const [sipInput, setSipInput] = useState("300");
 
   const selected = useMemo(() => {
     const keys: FundKey[] = [];
     if (edelweiss) keys.push("edelweiss");
     if (axisGold) keys.push("gold");
     if (axisSilver) keys.push("silver");
-
-    const investmentTotal = mode === "oneTime" ? oneTimeAmount : baseAmount;
-    const equalAmount = keys.length ? investmentTotal / keys.length : 0;
-    return keys.map(key => ({ key, amount: equalAmount }));
-  }, [edelweiss, axisGold, axisSilver, baseAmount, mode, oneTimeAmount]);
+    return keys.map(key => ({ key, amount: fundAmounts[key] }));
+  }, [edelweiss, axisGold, axisSilver, fundAmounts]);
 
   const selectedCount = Number(edelweiss) + Number(axisGold) + Number(axisSilver);
   const frequencyMinimum = frequency === "Daily" ? 100 : frequency === "Weekly" ? 1000 : 5000;
@@ -64,9 +63,7 @@ export default function PrototypeOne() {
   const sipMinimum = Math.max(frequencyMinimum, selectedCount * 100);
   const sipMaximum = frequencyMaximum;
   const sipStep = frequency === "Daily" ? 100 : frequency === "Weekly" ? 1000 : 5000;
-  const total = mode === "oneTime"
-    ? oneTimeAmount
-    : baseAmount;
+  const total = selected.reduce((sum, item) => sum + item.amount, 0);
   const minimumAmount = mode === "oneTime" ? 1000 : sipMinimum;
   const currentInput = mode === "oneTime" ? oneTimeInput : sipInput;
   const currentInputAmount = parseAmount(currentInput);
@@ -75,6 +72,61 @@ export default function PrototypeOne() {
     : currentInput === ""
       ? `Minimum amount is ₹${formatAmount(minimumAmount)}`
       : "";
+
+  const distributeTotal = (value: number, activeKeys: FundKey[]) => {
+    const minimumPerFund = 100;
+    const minimumTotal = activeKeys.length * minimumPerFund;
+    const safeTotal = Math.max(minimumTotal, Math.round(value / 100) * 100);
+    const next = { edelweiss: 0, gold: 0, silver: 0 };
+    activeKeys.forEach(key => { next[key] = minimumPerFund; });
+    let remaining = safeTotal - minimumTotal;
+    let index = 0;
+    while (remaining >= 100 && activeKeys.length) {
+      next[activeKeys[index % activeKeys.length]] += 100;
+      remaining -= 100;
+      index += 1;
+    }
+    setFundAmounts(next);
+    setBaseAmount(safeTotal);
+    setSipInput(String(safeTotal));
+  };
+
+  const setTotalAmount = (value: number) => {
+    const activeKeys: FundKey[] = [];
+    if (edelweiss) activeKeys.push("edelweiss");
+    if (axisGold) activeKeys.push("gold");
+    if (axisSilver) activeKeys.push("silver");
+    distributeTotal(value, activeKeys.length ? activeKeys : ["edelweiss", "gold", "silver"]);
+  };
+
+  const adjustFund = (key: FundKey, delta: number) => {
+    const current = fundAmounts[key];
+    const nextAmount = Math.max(0, current + delta);
+    setFundAmounts(prev => ({ ...prev, [key]: nextAmount }));
+    if (nextAmount === 0) {
+      if (key === "edelweiss") setEdelweiss(false);
+      if (key === "gold") setAxisGold(false);
+      if (key === "silver") setAxisSilver(false);
+    } else {
+      if (key === "edelweiss") setEdelweiss(true);
+      if (key === "gold") setAxisGold(true);
+      if (key === "silver") setAxisSilver(true);
+    }
+    const nextTotal = selected.reduce((sum, item) => sum + item.amount, 0) - current + nextAmount;
+    setBaseAmount(nextTotal);
+    setSipInput(String(nextTotal));
+  };
+
+  const loadRiskProfile = () => {
+    try {
+      const saved = window.localStorage.getItem("riskProfile");
+      if (saved) setRiskProfile(JSON.parse(saved));
+    } catch {}
+  };
+
+  useEffect(() => {
+    loadRiskProfile();
+  }, []);
 
   const goldAmount = selected.reduce(
     (sum, item) => sum + item.amount * funds[item.key].gold / 100,
@@ -96,25 +148,19 @@ export default function PrototypeOne() {
       return;
     }
     const next = Math.min(sipMaximum, Math.max(sipMinimum, value));
-    setBaseAmount(next);
-    setSipInput(String(next));
+    setTotalAmount(next);
   };
 
   const toggleFund = (key: FundKey) => {
-    const nextEdelweiss = key === "edelweiss" ? !edelweiss : edelweiss;
-    const nextAxisGold = key === "gold" ? !axisGold : axisGold;
-    const nextAxisSilver = key === "silver" ? !axisSilver : axisSilver;
-    const nextCount = Number(nextEdelweiss) + Number(nextAxisGold) + Number(nextAxisSilver);
+    const currentlySelected =
+      key === "edelweiss" ? edelweiss : key === "gold" ? axisGold : axisSilver;
 
-    if (mode === "sip") {
-      const nextAmount = Math.min(sipMaximum, Math.max(baseAmount, nextCount * 100));
-      setBaseAmount(nextAmount);
-      setSipInput(String(nextAmount));
+    if (currentlySelected) {
+      adjustFund(key, -fundAmounts[key]);
+      return;
     }
 
-    setEdelweiss(nextEdelweiss);
-    setAxisGold(nextAxisGold);
-    setAxisSilver(nextAxisSilver);
+    adjustFund(key, 100);
   };
 
   const allocation = [
@@ -139,6 +185,15 @@ export default function PrototypeOne() {
           <button className={mode === "oneTime" ? "tab active" : "tab"} onClick={() => setMode("oneTime")}>One-time</button>
         </div>
 
+        <section className={riskProfile ? "risk-nudge has-profile" : "risk-nudge"}>
+          <div className="risk-nudge-copy">
+            <span>RISK PROFILE</span>
+            <strong>{riskProfile ? `You’re ${riskProfile.name}` : "Know your investor profile?"}</strong>
+            <p>{riskProfile ? "Use your profile as a guide while choosing how much to invest." : "Answer 7 quick questions to understand your risk preference."}</p>
+          </div>
+          <a href="/risk-profile">{riskProfile ? "View" : "Check now"}</a>
+        </section>
+
         <section className="amount-section">
           {mode === "oneTime" && <div className="enter-label">Enter amount</div>}
 
@@ -146,7 +201,7 @@ export default function PrototypeOne() {
             <button
               onClick={() => mode === "oneTime"
                 ? (() => { const next = Math.max(1000, oneTimeAmount - 1000); setOneTimeAmount(next); setOneTimeInput(String(next)); })()
-                : (() => { const next = Math.max(sipMinimum, baseAmount - sipStep); setBaseAmount(next); setSipInput(String(next)); })()}
+                : (() => { const next = Math.max(sipMinimum, total - sipStep); setTotalAmount(next); })()}
               disabled={!!amountError || (mode === "oneTime" ? oneTimeAmount <= 1000 : baseAmount <= sipMinimum)}
             >−</button>
 
@@ -164,8 +219,8 @@ export default function PrototypeOne() {
                 className="amount-input"
                 type="text"
                 inputMode="numeric"
-                value={sipInput === "" ? "" : formatAmount(baseAmount)}
-                onChange={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setSipInput(raw); setBaseAmount(Math.min(sipMaximum, parseAmount(raw))); }}
+                value={sipInput === "" ? "" : formatAmount(total)}
+                onChange={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setSipInput(raw); setTotalAmount(Math.min(sipMaximum, parseAmount(raw))); }}
                 aria-label="SIP amount"
               />
             )}
@@ -173,7 +228,7 @@ export default function PrototypeOne() {
             <button
               onClick={() => mode === "oneTime"
                 ? (() => { const next = Math.min(300000, oneTimeAmount + 1000); setOneTimeAmount(next); setOneTimeInput(String(next)); })()
-                : (() => { const next = Math.min(sipMaximum, baseAmount + sipStep); setBaseAmount(next); setSipInput(String(next)); })()}
+                : (() => { const next = Math.min(sipMaximum, total + sipStep); setTotalAmount(next); })()}
               disabled={mode === "oneTime" ? oneTimeAmount >= 300000 : baseAmount >= sipMaximum}
             >+</button>
           </div>
@@ -204,13 +259,13 @@ export default function PrototypeOne() {
             min={mode === "oneTime" ? 1000 : sipMinimum}
             max={mode === "oneTime" ? 300000 : sipMaximum}
             step={mode === "oneTime" ? 1000 : sipStep}
-            value={mode === "oneTime" ? oneTimeAmount : baseAmount}
+            value={mode === "oneTime" ? oneTimeAmount : total}
             style={{
-              "--range-progress": `${((mode === "oneTime" ? oneTimeAmount - 1000 : baseAmount - sipMinimum) / ((mode === "oneTime" ? 300000 : sipMaximum) - (mode === "oneTime" ? 1000 : sipMinimum))) * 100}%`
+              "--range-progress": `${((mode === "oneTime" ? oneTimeAmount - 1000 : total - sipMinimum) / ((mode === "oneTime" ? 300000 : sipMaximum) - (mode === "oneTime" ? 1000 : sipMinimum))) * 100}%`
             } as React.CSSProperties}
             onChange={e => mode === "oneTime"
               ? setOneTimeAmount(Number(e.target.value))
-              : setBaseAmount(Number(e.target.value))}
+              : setTotalAmount(Number(e.target.value))}
             aria-label={mode === "oneTime" ? "One-time investment amount" : "SIP amount"}
           />
 
@@ -257,24 +312,33 @@ export default function PrototypeOne() {
 
         <section className={amountError ? "fund-list inactive" : "fund-list"}>
           <FundCard
-            title="Gold+Silver"
-            subtitle={edelweiss ? `Investing: ₹${formatAmount(selected.find(x => x.key === "edelweiss")?.amount ?? 0)}` : "Not investing in Gold+Silver"}
+            title="Gold + Silver"
+            subtitle="Edelweiss · 50% Gold / 50% Silver"
+            amount={fundAmounts.edelweiss}
             selected={edelweiss}
             onClick={() => toggleFund("edelweiss")}
+            onMinus={() => adjustFund("edelweiss", -100)}
+            onPlus={() => adjustFund("edelweiss", 100)}
           />
           <FundCard
-            title="Only Gold"
-            subtitle={axisGold ? `Investing: ₹${formatAmount(selected.find(x => x.key === "gold")?.amount ?? 0)}` : "Not investing in only gold"}
+            title="Gold"
+            subtitle="HDFC Gold Fund"
+            amount={fundAmounts.gold}
             selected={axisGold}
             onClick={() => toggleFund("gold")}
+            onMinus={() => adjustFund("gold", -100)}
+            onPlus={() => adjustFund("gold", 100)}
           />
           <FundCard
-            title="Only Silver"
-            subtitle={axisSilver ? `Investing: ₹${formatAmount(selected.find(x => x.key === "silver")?.amount ?? 0)}` : "Not investing in only silver"}
+            title="Silver"
+            subtitle="Nippon Silver Fund"
+            amount={fundAmounts.silver}
             selected={axisSilver}
             onClick={() => toggleFund("silver")}
+            onMinus={() => adjustFund("silver", -100)}
+            onPlus={() => adjustFund("silver", 100)}
           />
-        </section>
+        </section>>
 
         <div className={amountError ? "investing-pill inactive" : "investing-pill"} onClick={() => { if (!amountError) setSheet(true); }}>
           <span>Investing in</span>
@@ -325,21 +389,58 @@ export default function PrototypeOne() {
 function FundCard({
   title,
   subtitle,
+  amount,
   selected,
-  onClick
+  onClick,
+  onMinus,
+  onPlus
 }: {
   title: string;
   subtitle: string;
+  amount: number;
   selected: boolean;
   onClick: () => void;
+  onMinus: () => void;
+  onPlus: () => void;
 }) {
   return (
-    <button className={selected ? "fund-card selected-fund" : "fund-card"} onClick={onClick}>
-      <span className="checkbox">{selected ? "✓" : ""}</span>
-      <span className="fund-copy">
-        <b>{title}</b>
-        <span>{subtitle}</span>
-      </span>
-    </button>
+    <div className={selected ? "fund-card selected-fund fund-card-editable" : "fund-card fund-card-editable"}>
+      <button className="fund-select" onClick={onClick} aria-label={selected ? `Remove ${title}` : `Add ${title}`}>
+        <span className="checkbox">{selected ? "✓" : ""}</span>
+        <span className="fund-copy">
+          <b>{title}</b>
+          <span>{subtitle}</span>
+        </span>
+      </button>
+      <div className="fund-amount-control">
+        <button onClick={onMinus} disabled={amount <= 0} aria-label={`Decrease ${title}`}>−</button>
+        <strong>₹{formatAmount(amount)}</strong>
+        <button onClick={onPlus} aria-label={`Increase ${title}`}>+</button>
+      </div>
+    </div>
   );
 }
+
+<style jsx>{`
+.risk-nudge {
+  margin: 10px 16px 0;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #dedee5;
+  border-radius: 12px;
+  background: #f7f7fa;
+}
+.risk-nudge-copy span { display:block; font-size:8px; letter-spacing:.1em; font-weight:700; color:#777789; }
+.risk-nudge-copy strong { display:block; margin-top:3px; font-size:12px; }
+.risk-nudge-copy p { margin:3px 0 0; font-size:8px; color:#777789; line-height:1.3; }
+.risk-nudge a { flex:0 0 auto; text-decoration:none; font-size:9px; font-weight:700; color:#4a4965; padding:7px 9px; border:1px solid #4a4965; border-radius:7px; }
+.fund-card-editable { display:flex !important; align-items:center; gap:8px; }
+.fund-select { flex:1; min-width:0; display:flex; align-items:center; gap:10px; border:0; background:transparent; padding:0; text-align:left; color:inherit; }
+.fund-amount-control { display:flex; align-items:center; gap:4px; }
+.fund-amount-control button { width:26px; height:26px; border:1px solid #dddde4; border-radius:6px; background:#fff; color:#4a4965; font-size:16px; line-height:1; }
+.fund-amount-control button:disabled { opacity:.35; }
+.fund-amount-control strong { min-width:44px; text-align:center; font-size:10px; }
+`}</style>
