@@ -175,7 +175,7 @@ export default function RiskProfilePrototype() {
         score: finalScore,
         thought: finalProfile.thought
       }));
-      setStep(questions.length);
+      window.location.href = "/prototype-1";
       return;
     }
 
@@ -281,9 +281,6 @@ export default function RiskProfilePrototype() {
               <span>Your profile is a guide to your risk preference. Review it alongside your goals, time horizon and financial situation before investing.</span>
             </div>
 
-            <button className="risk-continue result-button" onClick={() => { window.location.href = "/prototype-1"; }}>
-              Go to investing
-            </button>
             <button className="risk-secondary" onClick={restart}>Retake assessment</button>
           </section>
         )}
