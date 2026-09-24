@@ -8,6 +8,7 @@ type RiskProfile = {
   thought: string;
   timeScore: number;
   riskScore: number;
+  combinedScore: number;
 };
 
 const descriptions: Record<string, string> = {
@@ -66,15 +67,24 @@ export default function RiskProfileDetails() {
             <p>{profile.thought}</p>
           </div>
 
-          <div className="score-card">
+          <div className="score-card combined-score-card">
             <div>
-              <span>Time Horizon</span>
-              <strong>{profile.timeScore}<small> / 36</small></strong>
+              <span>YOUR PROFILE SCORE</span>
+              <strong>{profile.combinedScore}<small> / 76</small></strong>
             </div>
-            <div>
-              <span>Risk Score</span>
-              <strong>{profile.riskScore}<small> / 40</small></strong>
+            <div className="score-scale">
+              <span>Lower</span>
+              <div className="score-line">
+                <i style={{ left: `${((profile.combinedScore - 3) / 73) * 100}%` }} />
+              </div>
+              <span>Higher</span>
             </div>
+          </div>
+
+          <div className="status-card basket-insight">
+            <span>ABOUT THIS BASKET</span>
+            <strong>Gold + Silver</strong>
+            <p>This basket gives you exposure to both gold and silver through one investment. Gold and silver can behave differently across market conditions, so the basket can have its own mix of stability and price movement.</p>
           </div>
 
           <div className="result-note">
