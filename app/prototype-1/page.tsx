@@ -53,10 +53,9 @@ export default function PrototypeOne() {
     [fundAmounts]
   );
 
-  const selectedCount = selected.length;
   const frequencyMinimum = frequency === "Daily" ? 50 : frequency === "Weekly" ? 1000 : 5000;
   const frequencyMaximum = frequency === "Daily" ? 2000 : frequency === "Weekly" ? 20000 : 50000;
-  const sipMinimum = Math.max(frequencyMinimum, selectedCount * 100);
+  const sipMinimum = frequencyMinimum;
   const sipMaximum = frequencyMaximum;
   const sipStep = frequency === "Daily" ? 100 : frequency === "Weekly" ? 1000 : 5000;
   const total = selected.reduce((sum, item) => sum + item.amount, 0);
