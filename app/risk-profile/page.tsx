@@ -160,7 +160,7 @@ export default function RiskProfilePrototype() {
         combinedScore: timeScore + riskScore
       }));
 
-      window.location.href = "/risk-profile/details";
+      window.location.href = "/prototype-1";
       return;
     }
 
@@ -211,7 +211,7 @@ export default function RiskProfilePrototype() {
               >
                 <span className="risk-radio">{selected === answer.score ? "✓" : ""}</span>
                 <span>{answer.label}</span>
-                <strong>{answer.score} pts</strong>
+                
               </button>
             ))}
           </div>
@@ -232,10 +232,9 @@ export default function RiskProfilePrototype() {
           <div className="risk-overlay" onClick={() => setShowInfo(false)}>
             <div className="risk-sheet" onClick={(event) => event.stopPropagation()}>
               <div className="sheet-handle" />
-              <h2>How your profile is calculated</h2>
-              <p>Questions 1–2 create a Time Horizon Score out of 36. Questions 3–6 create a Risk Score out of 40.</p>
-              <p>The two scores are mapped against the Investor Risk Profile Matrix used in this prototype. A Time Horizon Score of 0–9 results in a Conservative profile regardless of the Risk Score.</p>
-              <p className="sheet-source">This is a prototype scoring model and is not a recommendation to buy or sell an investment product.</p>
+              <h2>About your investor profile</h2>
+              <p>Your answers are used to understand your time horizon, investment experience, comfort with fluctuations and investment objectives.</p>
+              <p className="sheet-source">Your profile is a guide to your risk preference and is not a recommendation to buy or sell an investment product.</p>
               <button onClick={() => setShowInfo(false)}>Got it</button>
             </div>
           </div>
