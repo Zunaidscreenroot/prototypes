@@ -156,7 +156,8 @@ export default function RiskProfilePrototype() {
         tag: detail.tag,
         thought: detail.thought,
         timeScore,
-        riskScore
+        riskScore,
+        combinedScore: timeScore + riskScore
       }));
 
       window.location.href = "/risk-profile/details";
