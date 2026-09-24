@@ -69,33 +69,34 @@ export default function PrototypeOne() {
       : "";
 
   const distributeTotal = (value: number) => {
-    const safeTotal = Math.min(sipMaximum, Math.max(frequencyMinimum, Math.round(value / 50) * 50));
+    const safeTotal = Math.min(sipMaximum, Math.max(frequencyMinimum, Math.round(value)));
     const next = { edelweiss: 0, gold: 0, silver: 0 };
 
-    // Keep manual entry valid at every amount:
-    // ₹50–₹100 uses HDFC only; ₹150 uses one ₹100 fund + HDFC ₹50;
-    // ₹200 uses two ₹100 funds; ₹250+ starts all three at their minimums.
+    // Manual total entry accepts any whole-rupee amount.
+    // Below ₹250, only combinations that satisfy each fund's minimum are used.
     if (safeTotal < 100) {
-      next.gold = 50;
+      next.gold = safeTotal;
     } else if (safeTotal < 150) {
-      next.gold = 100;
+      next.gold = safeTotal;
     } else if (safeTotal < 200) {
       next.edelweiss = 100;
       next.gold = safeTotal - 100;
     } else if (safeTotal < 250) {
       next.edelweiss = 100;
-      next.gold = 100;
+      next.gold = safeTotal - 100;
     } else {
-      next.edelweiss = 100;
-      next.gold = 50;
-      next.silver = 100;
-      let remaining = safeTotal - 250;
-      const keys: FundKey[] = ["edelweiss", "gold", "silver"];
-      let index = 0;
-      while (remaining >= 50) {
-        next[keys[index % keys.length]] += 50;
-        remaining -= 50;
-        index += 1;
+      // At ₹250 all three can be active. From there, keep the allocation
+      // as balanced as the individual minimums allow.
+      const base = Math.floor(safeTotal / 3);
+      next.edelweiss = Math.max(100, base);
+      next.silver = Math.max(100, base);
+      next.gold = safeTotal - next.edelweiss - next.silver;
+
+      if (next.gold < 50) {
+        const shortfall = 50 - next.gold;
+        next.edelweiss = Math.max(100, next.edelweiss - Math.ceil(shortfall / 2));
+        next.silver = safeTotal - next.edelweiss - 50;
+        next.gold = 50;
       }
     }
 
@@ -103,7 +104,6 @@ export default function PrototypeOne() {
     setBaseAmount(safeTotal);
     setSipInput(String(safeTotal));
   };
-
   const setTotalAmount = (value: number) => {
     distributeTotal(value);
   };
@@ -312,24 +312,27 @@ export default function PrototypeOne() {
             subtitle=""
             amount={fundAmounts.edelweiss}
             minimum={funds.edelweiss.min}
-            onMinus={() => adjustFund("edelweiss", -100)}
-            onPlus={() => adjustFund("edelweiss", 100)}
+            onMinus={() => adjustFund("edelweiss", -1)}
+            onPlus={() => adjustFund("edelweiss", 1)}
+            onAmountChange={value => adjustFund("edelweiss", value - fundAmounts.edelweiss)}
           />
           <FundCard
             title={funds.gold.title}
             subtitle=""
             amount={fundAmounts.gold}
             minimum={funds.gold.min}
-            onMinus={() => adjustFund("gold", -50)}
-            onPlus={() => adjustFund("gold", 50)}
+            onMinus={() => adjustFund("gold", -1)}
+            onPlus={() => adjustFund("gold", 1)}
+            onAmountChange={value => adjustFund("gold", value - fundAmounts.gold)}
           />
           <FundCard
             title={funds.silver.title}
             subtitle=""
             amount={fundAmounts.silver}
             minimum={funds.silver.min}
-            onMinus={() => adjustFund("silver", -100)}
-            onPlus={() => adjustFund("silver", 100)}
+            onMinus={() => adjustFund("silver", -1)}
+            onPlus={() => adjustFund("silver", 1)}
+            onAmountChange={value => adjustFund("silver", value - fundAmounts.silver)}
           />
         </section>
 
@@ -380,7 +383,8 @@ function FundCard({
   amount,
   minimum,
   onMinus,
-  onPlus
+  onPlus,
+  onAmountChange
 }: {
   title: string;
   subtitle: string;
@@ -388,14 +392,17 @@ function FundCard({
   minimum: number;
   onMinus: () => void;
   onPlus: () => void;
+  onAmountChange: (value: number) => void;
 }) {
   const selected = amount > 0;
+  const invalid = selected && amount < minimum;
 
   return (
     <div className={selected ? "fund-card selected-fund fund-card-editable" : "fund-card fund-card-editable"}>
       <div className="fund-copy">
         <b>{title}</b>
         {subtitle && <span>{subtitle}</span>}
+        {invalid && <small className="fund-min-error">Min ₹{formatAmount(minimum)}</small>}
       </div>
       <div className="fund-amount-control">
         <button
@@ -403,7 +410,18 @@ function FundCard({
           disabled={amount === 0}
           aria-label={amount <= minimum ? `Remove ${title}` : `Decrease ${title}`}
         >−</button>
-        <strong>₹{formatAmount(amount)}</strong>
+        <input
+          className="fund-amount-input"
+          type="text"
+          inputMode="numeric"
+          value={amount === 0 ? "" : String(amount)}
+          placeholder="0"
+          onChange={e => {
+            const raw = e.target.value.replace(/[^0-9]/g, "");
+            onAmountChange(raw === "" ? 0 : Number(raw));
+          }}
+          aria-label={`${title} amount`}
+        />
         <button onClick={onPlus} aria-label={`Increase ${title}`}>+</button>
       </div>
     </div>
