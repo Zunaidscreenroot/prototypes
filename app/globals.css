@@ -148,3 +148,27 @@
 .withdraw-phone.invalid .withdraw-amount>button{cursor:default}
 .withdraw-phone.invalid .withdraw-amount-input{opacity:1}
 .sip-page.dark .amount-error,.withdraw-page.dark .withdraw-error{color:#ff7b72}
+
+
+/* Risk profile / editable fund allocation */
+risk-nudge {
+  margin: 10px 16px 0;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #dedee5;
+  border-radius: 12px;
+  background: #f7f7fa;
+}
+.risk-nudge-copy span { display:block; font-size:8px; letter-spacing:.1em; font-weight:700; color:#777789; }
+.risk-nudge-copy strong { display:block; margin-top:3px; font-size:12px; }
+.risk-nudge-copy p { margin:3px 0 0; font-size:8px; color:#777789; line-height:1.3; }
+.risk-nudge a { flex:0 0 auto; text-decoration:none; font-size:9px; font-weight:700; color:#4a4965; padding:7px 9px; border:1px solid #4a4965; border-radius:7px; }
+.fund-card-editable { display:flex !important; align-items:center; gap:8px; }
+.fund-select { flex:1; min-width:0; display:flex; align-items:center; gap:10px; border:0; background:transparent; padding:0; text-align:left; color:inherit; }
+.fund-amount-control { display:flex; align-items:center; gap:4px; }
+.fund-amount-control button { width:26px; height:26px; border:1px solid #dddde4; border-radius:6px; background:#fff; color:#4a4965; font-size:16px; line-height:1; }
+.fund-amount-control button:disabled { opacity:.35; }
+.fund-amount-control strong { min-width:44px; text-align:center; font-size:10px; }
