@@ -351,7 +351,7 @@ export default function PrototypeOne() {
                   ))}
                 </div>
 
-                {(selected.length > 1 || edelweiss) && (
+                {(selected.length > 1 || selected.some(item => item.key === "edelweiss")) && (
                   <div className="allocation-block">
                     {allocation.filter(item => item.amount > 0).map(item => (
                       <div className="allocation" key={item.label}>
