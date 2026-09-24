@@ -410,66 +410,94 @@ export default function RiskProfilePrototype() {
               <p>{profile.note}</p>
             </div>
 
-            <div className="fund-suggestions">
-              <div className="fund-title">Available building blocks</div>
-
-              <div className="fund-row">
-                <div className="fund-mark basket-mark">G+S</div>
+            <div className="investment-card">
+              <div className="investment-heading">
                 <div>
-                  <strong>{fundConfig.edelweiss.name}</strong>
-                  <span>50% Gold · 50% Silver · Min ₹{fundConfig.edelweiss.min}</span>
+                  <span>Suggested monthly investment</span>
+                  <strong>₹{formatINR(monthlyAmount)}</strong>
                 </div>
-                <b>₹{formatINR(fundPlan.allocation.edelweiss)}</b>
+                <span className="monthly-label">SIP</span>
               </div>
-
-              <div className="fund-row">
-                <div className="fund-mark gold-mark">Au</div>
-                <div>
-                  <strong>{fundConfig.hdfcGold.name}</strong>
-                  <span>Gold · Min ₹{fundConfig.hdfcGold.min}</span>
+              <div className="amount-chips">
+                {[500, 1000, 2000, 5000].map((amount) => (
+                  <button
+                    key={amount}
+                    className={monthlyAmount === amount ? "amount-chip active" : "amount-chip"}
+                    onClick={() => setMonthlyAmount(amount)}
+                  >
+                    ₹{formatINR(amount)}
+                  </button>
+                ))}
+              </div>
+              {!fundPlan.allocation && (
+                <div className="minimum-warning">
+                  This profile needs at least ₹{formatINR(fundPlan.minimumRequired)} per month to include all three funds.
                 </div>
-                <b>₹{formatINR(fundPlan.allocation.hdfcGold)}</b>
-              </div>
-
-              <div className="fund-row">
-                <div className="fund-mark silver-mark">Ag</div>
-                <div>
-                  <strong>{fundConfig.nipponSilver.name}</strong>
-                  <span>Silver · Min ₹{fundConfig.nipponSilver.min}</span>
-                </div>
-                <b>₹{formatINR(fundPlan.allocation.nipponSilver)}</b>
-              </div>
+              )}
             </div>
 
-            <div className="return-card">
-              <div className="return-heading">
-                <div>
-                  <span>Illustrative growth scenario</span>
-                  <strong>{(blendedRate * 100).toFixed(1)}% / year</strong>
+            {fundPlan.allocation && (
+              <>
+                <div className="fund-suggestions">
+                  <div className="fund-title">Your suggested fund split</div>
+
+                  <div className="fund-row">
+                    <div className="fund-mark basket-mark">G+S</div>
+                    <div>
+                      <strong>{fundConfig.edelweiss.name}</strong>
+                      <span>50% Gold · 50% Silver · Min ₹{fundConfig.edelweiss.min}</span>
+                    </div>
+                    <b>₹{formatINR(fundPlan.allocation.edelweiss)}</b>
+                  </div>
+
+                  <div className="fund-row">
+                    <div className="fund-mark gold-mark">Au</div>
+                    <div>
+                      <strong>{fundConfig.hdfcGold.name}</strong>
+                      <span>Gold · Min ₹{fundConfig.hdfcGold.min}</span>
+                    </div>
+                    <b>₹{formatINR(fundPlan.allocation.hdfcGold)}</b>
+                  </div>
+
+                  <div className="fund-row">
+                    <div className="fund-mark silver-mark">Ag</div>
+                    <div>
+                      <strong>{fundConfig.nipponSilver.name}</strong>
+                      <span>Silver · Min ₹{fundConfig.nipponSilver.min}</span>
+                    </div>
+                    <b>₹{formatINR(fundPlan.allocation.nipponSilver)}</b>
+                  </div>
                 </div>
-                <span className="scenario-label">NOT A FORECAST</span>
-              </div>
-              <div className="return-grid">
-                <div>
-                  <span>Invested in 3 years</span>
-                  <strong>₹{formatINR(monthlyAmount * 36)}</strong>
+
+                <div className="return-card">
+                  <div className="return-heading">
+                    <div>
+                      <span>Illustrative growth scenario</span>
+                      <strong>{(blendedRate * 100).toFixed(1)}% / year</strong>
+                    </div>
+                    <span className="scenario-label">NOT A FORECAST</span>
+                  </div>
+                  <div className="return-grid">
+                    <div>
+                      <span>Invested in 3 years</span>
+                      <strong>₹{formatINR(monthlyAmount * 36)}</strong>
+                    </div>
+                    <div>
+                      <span>Illustrative value</span>
+                      <strong>₹{formatINR(threeYearValue)}</strong>
+                    </div>
+                    <div>
+                      <span>Potential gain*</span>
+                      <strong>₹{formatINR(threeYearValue - monthlyAmount * 36)}</strong>
+                    </div>
+                  </div>
+                  <div className="five-year">
+                    <span>At the same illustrative rate, ₹{formatINR(monthlyAmount)}/month could be worth about</span>
+                    <strong>₹{formatINR(fiveYearValue)} in 5 years</strong>
+                  </div>
                 </div>
-                <div>
-                  <span>Illustrative value</span>
-                  <strong>₹{formatINR(threeYearValue)}</strong>
-                </div>
-                <div>
-                  <span>Potential gain*</span>
-                  <strong>₹{formatINR(threeYearValue - monthlyAmount * 36)}</strong>
-                </div>
-              </div>
-              <div className="five-year">
-                <span>At the same illustrative rate, ₹{formatINR(monthlyAmount)}/month could be worth about</span>
-                <strong>₹{formatINR(fiveYearValue)} in 5 years</strong>
-              </div>
-            </div>
-                </>
-              )
+              </>
+            )}
 
             <div className="result-note">
               <strong>Important</strong>
