@@ -146,11 +146,105 @@ const profiles = [
 const formatINR = (value: number) =>
   value.toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
+const fundConfig = {
+  edelweiss: {
+    name: "Edelweiss Gold & Silver FoF",
+    min: 100,
+    annualRate: 0.09,
+    mix: "50% Gold · 50% Silver"
+  },
+  hdfcGold: {
+    name: "HDFC Gold Fund",
+    min: 50,
+    annualRate: 0.08,
+    mix: "Gold"
+  },
+  nipponSilver: {
+    name: "Nippon India Silver FoF",
+    min: 100,
+    annualRate: 0.10,
+    mix: "Silver"
+  }
+};
+
+const roundAmount = (value: number) => Math.max(0, Math.round(value / 10) * 10);
+
+const calculateFundAllocation = (monthlyAmount: number, goldTarget: number) => {
+  // Edelweiss is a 50:50 Gold/Silver fund. We keep it at 40% of the
+  // basket, then use HDFC Gold and Nippon Silver to move the overall
+  // metal mix toward the profile target.
+  const targetWeights = {
+    edelweiss: 40,
+    hdfcGold: goldTarget - 20,
+    nipponSilver: 60 - goldTarget
+  };
+
+  const raw = {
+    edelweiss: monthlyAmount * targetWeights.edelweiss / 100,
+    hdfcGold: monthlyAmount * targetWeights.hdfcGold / 100,
+    nipponSilver: monthlyAmount * targetWeights.nipponSilver / 100
+  };
+
+  let allocation = {
+    edelweiss: roundAmount(raw.edelweiss),
+    hdfcGold: roundAmount(raw.hdfcGold),
+    nipponSilver: roundAmount(raw.nipponSilver)
+  };
+
+  const minimums = {
+    edelweiss: fundConfig.edelweiss.min,
+    hdfcGold: fundConfig.hdfcGold.min,
+    nipponSilver: fundConfig.nipponSilver.min
+  };
+
+  if (monthlyAmount < minimums.edelweiss + minimums.hdfcGold + minimums.nipponSilver) {
+    return { allocation: null, minimumRequired: 250 };
+  }
+
+  // Apply fund minimums first, then distribute the remaining amount using
+  // the target weights. This keeps every suggested fund investible.
+  (Object.keys(allocation) as (keyof typeof allocation)[]).forEach((key) => {
+    allocation[key] = Math.max(allocation[key], minimums[key]);
+  });
+
+  let total = Object.values(allocation).reduce((sum, value) => sum + value, 0);
+  let diff = monthlyAmount - total;
+
+  while (diff !== 0) {
+    const candidates = (Object.keys(allocation) as (keyof typeof allocation)[])
+      .filter((key) => diff > 0 || allocation[key] > minimums[key])
+      .sort((a, b) => targetWeights[b] - targetWeights[a]);
+
+    if (!candidates.length) break;
+
+    const key = candidates[0];
+    const step = diff > 0 ? 10 : -10;
+    allocation[key] += step;
+    diff -= step;
+  }
+
+  total = Object.values(allocation).reduce((sum, value) => sum + value, 0);
+
+  return {
+    allocation,
+    minimumRequired: 250,
+    total
+  };
+};
+
+const sipFutureValue = (monthlyAmount: number, annualRate: number, years: number) => {
+  const monthlyRate = annualRate / 12;
+  const months = years * 12;
+  if (monthlyRate === 0) return monthlyAmount * months;
+  return monthlyAmount * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+};
+
 export default function RiskProfilePrototype() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [monthlyAmount, setMonthlyAmount] = useState(1000);
 
   const score = useMemo(
     () => answers.reduce((sum, value) => sum + value, 0),
@@ -161,6 +255,25 @@ export default function RiskProfilePrototype() {
     () => profiles.find((item) => score >= item.min && score <= item.max) ?? profiles[1],
     [score]
   );
+
+  const fundPlan = useMemo(
+    () => calculateFundAllocation(monthlyAmount, profile.gold),
+    [monthlyAmount, profile.gold]
+  );
+
+  const blendedRate = useMemo(() => {
+    if (!fundPlan.allocation) return 0;
+    const total = monthlyAmount;
+    return (
+      (fundPlan.allocation.edelweiss * fundConfig.edelweiss.annualRate +
+        fundPlan.allocation.hdfcGold * fundConfig.hdfcGold.annualRate +
+        fundPlan.allocation.nipponSilver * fundConfig.nipponSilver.annualRate) /
+      total
+    );
+  }, [fundPlan, monthlyAmount]);
+
+  const threeYearValue = sipFutureValue(monthlyAmount, blendedRate, 3);
+  const fiveYearValue = sipFutureValue(monthlyAmount, blendedRate, 5);
 
   const selectAnswer = (answerScore: number) => {
     setSelected(answerScore);
@@ -301,32 +414,62 @@ export default function RiskProfilePrototype() {
               <div className="fund-title">Available building blocks</div>
 
               <div className="fund-row">
+                <div className="fund-mark basket-mark">G+S</div>
+                <div>
+                  <strong>{fundConfig.edelweiss.name}</strong>
+                  <span>50% Gold · 50% Silver · Min ₹{fundConfig.edelweiss.min}</span>
+                </div>
+                <b>₹{formatINR(fundPlan.allocation.edelweiss)}</b>
+              </div>
+
+              <div className="fund-row">
                 <div className="fund-mark gold-mark">Au</div>
                 <div>
-                  <strong>Axis Gold Fund</strong>
-                  <span>Gold allocation · Riskometer applies to the scheme</span>
+                  <strong>{fundConfig.hdfcGold.name}</strong>
+                  <span>Gold · Min ₹{fundConfig.hdfcGold.min}</span>
                 </div>
-                <b>{profile.gold}%</b>
+                <b>₹{formatINR(fundPlan.allocation.hdfcGold)}</b>
               </div>
 
               <div className="fund-row">
                 <div className="fund-mark silver-mark">Ag</div>
                 <div>
-                  <strong>Axis Silver Fund</strong>
-                  <span>Silver allocation · Riskometer applies to the scheme</span>
+                  <strong>{fundConfig.nipponSilver.name}</strong>
+                  <span>Silver · Min ₹{fundConfig.nipponSilver.min}</span>
                 </div>
-                <b>{profile.silver}%</b>
-              </div>
-
-              <div className="fund-row">
-                <div className="fund-mark basket-mark">G+S</div>
-                <div>
-                  <strong>Edelweiss Gold and Silver ETF Fund of Funds</strong>
-                  <span>Existing 60% Gold / 40% Silver basket</span>
-                </div>
-                <b>60/40</b>
+                <b>₹{formatINR(fundPlan.allocation.nipponSilver)}</b>
               </div>
             </div>
+
+            <div className="return-card">
+              <div className="return-heading">
+                <div>
+                  <span>Illustrative growth scenario</span>
+                  <strong>{(blendedRate * 100).toFixed(1)}% / year</strong>
+                </div>
+                <span className="scenario-label">NOT A FORECAST</span>
+              </div>
+              <div className="return-grid">
+                <div>
+                  <span>Invested in 3 years</span>
+                  <strong>₹{formatINR(monthlyAmount * 36)}</strong>
+                </div>
+                <div>
+                  <span>Illustrative value</span>
+                  <strong>₹{formatINR(threeYearValue)}</strong>
+                </div>
+                <div>
+                  <span>Potential gain*</span>
+                  <strong>₹{formatINR(threeYearValue - monthlyAmount * 36)}</strong>
+                </div>
+              </div>
+              <div className="five-year">
+                <span>At the same illustrative rate, ₹{formatINR(monthlyAmount)}/month could be worth about</span>
+                <strong>₹{formatINR(fiveYearValue)} in 5 years</strong>
+              </div>
+            </div>
+                </>
+              )
 
             <div className="result-note">
               <strong>Important</strong>
@@ -348,7 +491,14 @@ export default function RiskProfilePrototype() {
               </p>
               <p>
                 Each answer contributes 1–5 points. The total score is mapped to an
-                indicative profile from lower to higher risk preference.
+                indicative profile from lower to higher risk preference. The suggested
+                fund amounts are then adjusted for the profile's Gold/Silver target and
+                the minimum investment amount configured for each fund.
+              </p>
+              <p>
+                Return figures on the result screen use fixed illustrative assumptions
+                of 9% for Edelweiss, 8% for HDFC Gold and 10% for Nippon Silver.
+                They are scenario calculations only, not expected or guaranteed returns.
               </p>
               <p className="sheet-source">
                 The questionnaire structure is informed by SEBI's risk-profiling requirements.
@@ -589,6 +739,15 @@ export default function RiskProfilePrototype() {
         .allocation-bar span:first-child { background: #4a4965; }
         .allocation-bar span:last-child { background: #a6a5b2; }
         .basket-card p { margin: 10px 0 0; color: #6c6c7a; font-size: 8px; line-height: 1.4; }
+        .investment-card, .return-card { border: 1.5px solid #e1e1e6; border-radius: 12px; background: #fff; padding: 12px; margin-bottom: 9px; }
+        .investment-heading, .return-heading { display: flex; align-items: flex-start; justify-content: space-between; }
+        .investment-heading span, .return-heading span { display: block; color: #777789; font-size: 8px; }
+        .investment-heading strong, .return-heading strong { display: block; margin-top: 3px; font-size: 21px; letter-spacing: -.04em; }
+        .monthly-label, .scenario-label { padding: 5px 7px; border-radius: 999px; background: #f0f0f4; color: #5d5d6d !important; font-size: 7px !important; font-weight: 700; }
+        .amount-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 11px; }
+        .amount-chip { height: 32px; border: 1px solid #dedee4; border-radius: 7px; background: #fff; color: #555565; font-size: 9px; }
+        .amount-chip.active { border-color: #4a4965; background: #f5f4fa; color: #4a4965; font-weight: 700; }
+        .minimum-warning { margin-top: 9px; padding: 8px; border-radius: 7px; background: #f7f7f8; color: #6d6d7b; font-size: 8px; line-height: 1.35; }
         .fund-suggestions { padding: 11px 12px; margin-bottom: 9px; }
         .fund-title { margin-bottom: 8px; }
         .fund-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid #ececf0; }
@@ -600,6 +759,15 @@ export default function RiskProfilePrototype() {
         .fund-row strong { font-size: 9px; line-height: 1.25; }
         .fund-row span { margin-top: 2px; color: #858593; font-size: 7px; line-height: 1.25; }
         .fund-row b { font-size: 10px; }
+        .return-card { background: #fafafd; }
+        .return-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 11px; }
+        .return-grid div { padding: 8px; border-radius: 8px; background: #f1f1f5; }
+        .return-grid div:last-child { grid-column: 1 / -1; }
+        .return-grid span { display: block; color: #777789; font-size: 7px; }
+        .return-grid strong { display: block; margin-top: 3px; font-size: 13px; letter-spacing: -.02em; }
+        .five-year { display: flex; justify-content: space-between; gap: 8px; margin-top: 9px; padding-top: 9px; border-top: 1px solid #e6e6eb; }
+        .five-year span { color: #777789; font-size: 7px; line-height: 1.35; }
+        .five-year strong { white-space: nowrap; font-size: 8px; }
         .result-note { display: flex; gap: 7px; padding: 10px; background: #f8f8f9; }
         .result-note strong { font-size: 8px; white-space: nowrap; }
         .result-note span { color: #747481; font-size: 7px; line-height: 1.35; }
