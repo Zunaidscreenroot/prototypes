@@ -99,152 +99,51 @@ const questions: {
 const profiles = [
   {
     min: 7,
-    max: 13,
-    name: "Capital Protector",
+    max: 12,
+    name: "Conservative",
     tag: "Lower risk preference",
-    description: "You appear more focused on preserving capital and keeping volatility manageable.",
-    gold: 70,
-    silver: 30,
-    basket: "Gold-led basket",
-    note: "Higher gold allocation may help keep the basket less exposed to silver's higher price swings."
+    description: "You seem more focused on protecting your money and keeping short-term fluctuations manageable.",
+    thought: "Think about how much of your investment you can comfortably leave untouched before choosing an amount."
   },
   {
-    min: 14,
-    max: 20,
-    name: "Balanced Builder",
+    min: 13,
+    max: 18,
+    name: "Moderately Conservative",
+    tag: "Lower to moderate risk preference",
+    description: "You seem to value stability while having some room to accept investment fluctuations.",
+    thought: "Think about your time horizon and whether you can stay invested when markets move up or down."
+  },
+  {
+    min: 19,
+    max: 24,
+    name: "Balanced",
     tag: "Moderate risk preference",
-    description: "You appear comfortable with some fluctuation while still valuing stability.",
-    gold: 60,
-    silver: 40,
-    basket: "Gold + Silver basket",
-    note: "A balanced allocation across gold and silver keeps the basket diversified across the two metals."
+    description: "You appear comfortable balancing stability with the possibility of higher long-term fluctuations.",
+    thought: "Think about balancing your investment amount with your other financial commitments."
   },
   {
-    min: 21,
-    max: 27,
-    name: "Growth Seeker",
+    min: 25,
+    max: 30,
+    name: "Growth",
     tag: "Higher risk preference",
-    description: "You appear comfortable accepting more fluctuation for longer-term growth potential.",
-    gold: 50,
-    silver: 50,
-    basket: "Balanced metals basket",
-    note: "An equal allocation gives both metals a meaningful role in the basket."
+    description: "You appear more comfortable accepting short-term fluctuations for longer-term growth potential.",
+    thought: "Think about whether you have enough time to stay invested through periods of market volatility."
   },
   {
-    min: 28,
+    min: 31,
     max: 35,
-    name: "Growth Plus",
-    tag: "High risk preference",
-    description: "You appear comfortable with larger short-term fluctuations and a longer investment horizon.",
-    gold: 40,
-    silver: 60,
-    basket: "Silver-led growth basket",
-    note: "A higher silver allocation increases exposure to a metal that can experience larger price swings."
+    name: "Aggressive",
+    tag: "Higher risk preference",
+    description: "Your answers suggest a relatively high comfort with fluctuations and a longer investment horizon.",
+    thought: "Think about whether a higher level of fluctuation still fits your goals and financial capacity."
   }
 ];
-
-const formatINR = (value: number) =>
-  value.toLocaleString("en-IN", { maximumFractionDigits: 0 });
-
-const fundConfig = {
-  edelweiss: {
-    name: "Edelweiss Gold & Silver FoF",
-    min: 100,
-    annualRate: 0.09,
-    mix: "50% Gold · 50% Silver"
-  },
-  hdfcGold: {
-    name: "HDFC Gold Fund",
-    min: 50,
-    annualRate: 0.08,
-    mix: "Gold"
-  },
-  nipponSilver: {
-    name: "Nippon India Silver FoF",
-    min: 100,
-    annualRate: 0.10,
-    mix: "Silver"
-  }
-};
-
-const roundAmount = (value: number) => Math.max(0, Math.round(value / 10) * 10);
-
-const calculateFundAllocation = (monthlyAmount: number, goldTarget: number) => {
-  // Edelweiss is a 50:50 Gold/Silver fund. We keep it at 40% of the
-  // basket, then use HDFC Gold and Nippon Silver to move the overall
-  // metal mix toward the profile target.
-  const targetWeights = {
-    edelweiss: 40,
-    hdfcGold: goldTarget - 20,
-    nipponSilver: 60 - goldTarget
-  };
-
-  const raw = {
-    edelweiss: monthlyAmount * targetWeights.edelweiss / 100,
-    hdfcGold: monthlyAmount * targetWeights.hdfcGold / 100,
-    nipponSilver: monthlyAmount * targetWeights.nipponSilver / 100
-  };
-
-  let allocation = {
-    edelweiss: roundAmount(raw.edelweiss),
-    hdfcGold: roundAmount(raw.hdfcGold),
-    nipponSilver: roundAmount(raw.nipponSilver)
-  };
-
-  const minimums = {
-    edelweiss: fundConfig.edelweiss.min,
-    hdfcGold: fundConfig.hdfcGold.min,
-    nipponSilver: fundConfig.nipponSilver.min
-  };
-
-  if (monthlyAmount < minimums.edelweiss + minimums.hdfcGold + minimums.nipponSilver) {
-    return { allocation: null, minimumRequired: 250 };
-  }
-
-  // Apply fund minimums first, then distribute the remaining amount using
-  // the target weights. This keeps every suggested fund investible.
-  (Object.keys(allocation) as (keyof typeof allocation)[]).forEach((key) => {
-    allocation[key] = Math.max(allocation[key], minimums[key]);
-  });
-
-  let total = Object.values(allocation).reduce((sum, value) => sum + value, 0);
-  let diff = monthlyAmount - total;
-
-  while (diff !== 0) {
-    const candidates = (Object.keys(allocation) as (keyof typeof allocation)[])
-      .filter((key) => diff > 0 || allocation[key] > minimums[key])
-      .sort((a, b) => targetWeights[b] - targetWeights[a]);
-
-    if (!candidates.length) break;
-
-    const key = candidates[0];
-    const step = diff > 0 ? 10 : -10;
-    allocation[key] += step;
-    diff -= step;
-  }
-
-  total = Object.values(allocation).reduce((sum, value) => sum + value, 0);
-
-  return {
-    allocation,
-    minimumRequired: 250,
-    total
-  };
-};
-
-const sipFutureValue = (monthlyAmount: number, annualRate: number, years: number) => {
-  const monthlyRate = annualRate / 12;
-  const months = years * 12;
-  if (monthlyRate === 0) return monthlyAmount * months;
-  return monthlyAmount * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
-};
 
 export default function RiskProfilePrototype() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
-  const [monthlyAmount, setMonthlyAmount] = useState(1000);
 
   const score = useMemo(
     () => answers.reduce((sum, value) => sum + value, 0),
@@ -287,6 +186,14 @@ export default function RiskProfilePrototype() {
     setAnswers(nextAnswers);
 
     if (step === questions.length - 1) {
+      const finalScore = nextAnswers.reduce((sum, value) => sum + value, 0);
+      const finalProfile = profiles.find((item) => finalScore >= item.min && finalScore <= item.max) ?? profiles[2];
+      window.localStorage.setItem("riskProfile", JSON.stringify({
+        name: finalProfile.name,
+        tag: finalProfile.tag,
+        score: finalScore,
+        thought: finalProfile.thought
+      }));
       setStep(questions.length);
       return;
     }
@@ -363,10 +270,16 @@ export default function RiskProfilePrototype() {
         ) : (
           <section className="risk-result">
             <div className="result-icon">✓</div>
-            <div className="risk-eyebrow">YOUR RISK PROFILE</div>
+            <div className="risk-eyebrow">YOUR INVESTOR RISK PROFILE</div>
             <h1>{profile.name}</h1>
             <span className="profile-tag">{profile.tag}</span>
             <p className="result-description">{profile.description}</p>
+
+            <div className="status-card">
+              <span>YOUR PROFILE STATUS</span>
+              <strong>{profile.name}</strong>
+              <p>{profile.thought}</p>
+            </div>
 
             <div className="score-card">
               <div>
@@ -382,129 +295,15 @@ export default function RiskProfilePrototype() {
               </div>
             </div>
 
-            <div className="basket-card">
-              <div className="basket-heading">
-                <div>
-                  <span>Suggested metal basket</span>
-                  <h2>{profile.basket}</h2>
-                </div>
-                <button onClick={() => setShowInfo(true)}>i</button>
-              </div>
-
-              <div className="allocation-row">
-                <div>
-                  <span>Gold</span>
-                  <strong>{profile.gold}%</strong>
-                </div>
-                <div>
-                  <span>Silver</span>
-                  <strong>{profile.silver}%</strong>
-                </div>
-              </div>
-
-              <div className="allocation-bar">
-                <span style={{ width: `${profile.gold}%` }} />
-                <span style={{ width: `${profile.silver}%` }} />
-              </div>
-
-              <p>{profile.note}</p>
-            </div>
-
-            <div className="investment-card">
-              <div className="investment-heading">
-                <div>
-                  <span>Suggested monthly investment</span>
-                  <strong>₹{formatINR(monthlyAmount)}</strong>
-                </div>
-                <span className="monthly-label">SIP</span>
-              </div>
-              <div className="amount-chips">
-                {[500, 1000, 2000, 5000].map((amount) => (
-                  <button
-                    key={amount}
-                    className={monthlyAmount === amount ? "amount-chip active" : "amount-chip"}
-                    onClick={() => setMonthlyAmount(amount)}
-                  >
-                    ₹{formatINR(amount)}
-                  </button>
-                ))}
-              </div>
-              {!fundPlan.allocation && (
-                <div className="minimum-warning">
-                  This profile needs at least ₹{formatINR(fundPlan.minimumRequired)} per month to include all three funds.
-                </div>
-              )}
-            </div>
-
-            {fundPlan.allocation && (
-              <>
-                <div className="fund-suggestions">
-                  <div className="fund-title">Your suggested fund split</div>
-
-                  <div className="fund-row">
-                    <div className="fund-mark basket-mark">G+S</div>
-                    <div>
-                      <strong>{fundConfig.edelweiss.name}</strong>
-                      <span>50% Gold · 50% Silver · Min ₹{fundConfig.edelweiss.min}</span>
-                    </div>
-                    <b>₹{formatINR(fundPlan.allocation.edelweiss)}</b>
-                  </div>
-
-                  <div className="fund-row">
-                    <div className="fund-mark gold-mark">Au</div>
-                    <div>
-                      <strong>{fundConfig.hdfcGold.name}</strong>
-                      <span>Gold · Min ₹{fundConfig.hdfcGold.min}</span>
-                    </div>
-                    <b>₹{formatINR(fundPlan.allocation.hdfcGold)}</b>
-                  </div>
-
-                  <div className="fund-row">
-                    <div className="fund-mark silver-mark">Ag</div>
-                    <div>
-                      <strong>{fundConfig.nipponSilver.name}</strong>
-                      <span>Silver · Min ₹{fundConfig.nipponSilver.min}</span>
-                    </div>
-                    <b>₹{formatINR(fundPlan.allocation.nipponSilver)}</b>
-                  </div>
-                </div>
-
-                <div className="return-card">
-                  <div className="return-heading">
-                    <div>
-                      <span>Illustrative growth scenario</span>
-                      <strong>{(blendedRate * 100).toFixed(1)}% / year</strong>
-                    </div>
-                    <span className="scenario-label">NOT A FORECAST</span>
-                  </div>
-                  <div className="return-grid">
-                    <div>
-                      <span>Invested in 3 years</span>
-                      <strong>₹{formatINR(monthlyAmount * 36)}</strong>
-                    </div>
-                    <div>
-                      <span>Illustrative value</span>
-                      <strong>₹{formatINR(threeYearValue)}</strong>
-                    </div>
-                    <div>
-                      <span>Potential gain*</span>
-                      <strong>₹{formatINR(threeYearValue - monthlyAmount * 36)}</strong>
-                    </div>
-                  </div>
-                  <div className="five-year">
-                    <span>At the same illustrative rate, ₹{formatINR(monthlyAmount)}/month could be worth about</span>
-                    <strong>₹{formatINR(fiveYearValue)} in 5 years</strong>
-                  </div>
-                </div>
-              </>
-            )}
-
             <div className="result-note">
-              <strong>Important</strong>
-              <span>This is an indicative risk assessment, not a guarantee of returns or a personalised investment recommendation.</span>
+              <strong>Remember</strong>
+              <span>Your profile is a guide to your risk preference. Review it alongside your goals, time horizon and financial situation before investing.</span>
             </div>
 
-            <button className="risk-continue result-button" onClick={restart}>Retake assessment</button>
+            <button className="risk-continue result-button" onClick={() => { window.location.href = "/prototype-1"; }}>
+              Go to investing
+            </button>
+            <button className="risk-secondary" onClick={restart}>Retake assessment</button>
           </section>
         )}
 
@@ -518,21 +317,10 @@ export default function RiskProfilePrototype() {
                 investment experience, loss tolerance and financial commitments.
               </p>
               <p>
-                Each answer contributes 1–5 points. The total score is mapped to an
-                indicative profile from lower to higher risk preference. The suggested
-                fund amounts are then adjusted for the profile's Gold/Silver target and
-                the minimum investment amount configured for each fund.
+                Each answer contributes 1–5 points. Your responses are combined into an
+                indicative investor risk profile, from Conservative to Aggressive.
               </p>
-              <p>
-                Return figures on the result screen use fixed illustrative assumptions
-                of 9% for Edelweiss, 8% for HDFC Gold and 10% for Nippon Silver.
-                They are scenario calculations only, not expected or guaranteed returns.
-              </p>
-              <p className="sheet-source">
-                The questionnaire structure is informed by SEBI's risk-profiling requirements.
-                SEBI does not prescribe one fixed seven-question questionnaire or these exact
-                score bands.
-              </p>
+              <p className="sheet-source">This questionnaire is a prototype and is not a recommendation to buy or sell an investment product.</p>
               <button onClick={() => setShowInfo(false)}>Got it</button>
             </div>
           </div>
@@ -767,35 +555,6 @@ export default function RiskProfilePrototype() {
         .allocation-bar span:first-child { background: #4a4965; }
         .allocation-bar span:last-child { background: #a6a5b2; }
         .basket-card p { margin: 10px 0 0; color: #6c6c7a; font-size: 8px; line-height: 1.4; }
-        .investment-card, .return-card { border: 1.5px solid #e1e1e6; border-radius: 12px; background: #fff; padding: 12px; margin-bottom: 9px; }
-        .investment-heading, .return-heading { display: flex; align-items: flex-start; justify-content: space-between; }
-        .investment-heading span, .return-heading span { display: block; color: #777789; font-size: 8px; }
-        .investment-heading strong, .return-heading strong { display: block; margin-top: 3px; font-size: 21px; letter-spacing: -.04em; }
-        .monthly-label, .scenario-label { padding: 5px 7px; border-radius: 999px; background: #f0f0f4; color: #5d5d6d !important; font-size: 7px !important; font-weight: 700; }
-        .amount-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 11px; }
-        .amount-chip { height: 32px; border: 1px solid #dedee4; border-radius: 7px; background: #fff; color: #555565; font-size: 9px; }
-        .amount-chip.active { border-color: #4a4965; background: #f5f4fa; color: #4a4965; font-weight: 700; }
-        .minimum-warning { margin-top: 9px; padding: 8px; border-radius: 7px; background: #f7f7f8; color: #6d6d7b; font-size: 8px; line-height: 1.35; }
-        .fund-suggestions { padding: 11px 12px; margin-bottom: 9px; }
-        .fund-title { margin-bottom: 8px; }
-        .fund-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid #ececf0; }
-        .fund-mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; font-size: 8px; font-weight: 800; }
-        .gold-mark { background: #f2eee1; color: #8b7026; }
-        .silver-mark { background: #e8e9ed; color: #666a74; }
-        .basket-mark { background: #e8e7f0; color: #4a4965; }
-        .fund-row strong, .fund-row span { display: block; }
-        .fund-row strong { font-size: 9px; line-height: 1.25; }
-        .fund-row span { margin-top: 2px; color: #858593; font-size: 7px; line-height: 1.25; }
-        .fund-row b { font-size: 10px; }
-        .return-card { background: #fafafd; }
-        .return-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 11px; }
-        .return-grid div { padding: 8px; border-radius: 8px; background: #f1f1f5; }
-        .return-grid div:last-child { grid-column: 1 / -1; }
-        .return-grid span { display: block; color: #777789; font-size: 7px; }
-        .return-grid strong { display: block; margin-top: 3px; font-size: 13px; letter-spacing: -.02em; }
-        .five-year { display: flex; justify-content: space-between; gap: 8px; margin-top: 9px; padding-top: 9px; border-top: 1px solid #e6e6eb; }
-        .five-year span { color: #777789; font-size: 7px; line-height: 1.35; }
-        .five-year strong { white-space: nowrap; font-size: 8px; }
         .result-note { display: flex; gap: 7px; padding: 10px; background: #f8f8f9; }
         .result-note strong { font-size: 8px; white-space: nowrap; }
         .result-note span { color: #747481; font-size: 7px; line-height: 1.35; }
@@ -810,6 +569,28 @@ export default function RiskProfilePrototype() {
         @media (max-width: 600px) {
           .risk-page { background: #fff; }
           .risk-phone { width: 100vw; height: 100vh; min-height: 100vh; box-shadow: none; }
+        }
+
+        .status-card {
+          margin: 12px 0 9px;
+          padding: 15px;
+          border-radius: 12px;
+          background: #f5f4fa;
+          border: 1.5px solid #dedde8;
+        }
+        .status-card > span { display: block; color: #777789; font-size: 8px; letter-spacing: .08em; font-weight: 700; }
+        .status-card strong { display: block; margin-top: 5px; font-size: 19px; letter-spacing: -.03em; }
+        .status-card p { margin: 7px 0 0; color: #666675; font-size: 9px; line-height: 1.45; }
+        .risk-secondary {
+          width: 100%;
+          height: 44px;
+          margin-top: 8px;
+          border: 1.5px solid #dedde5;
+          border-radius: 7px;
+          background: #fff;
+          color: #555565;
+          font-size: 12px;
+          font-weight: 700;
         }
       `}</style>
     </main>
