@@ -338,7 +338,7 @@ export default function PrototypeOne() {
             onMinus={() => adjustFund("silver", -100)}
             onPlus={() => adjustFund("silver", 100)}
           />
-        </section>>
+        </section>
 
         <div className={amountError ? "investing-pill inactive" : "investing-pill"} onClick={() => { if (!amountError) setSheet(true); }}>
           <span>Investing in</span>
