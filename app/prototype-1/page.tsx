@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 const funds = {
   edelweiss: {
@@ -262,7 +262,7 @@ export default function PrototypeOne() {
             value={mode === "oneTime" ? oneTimeAmount : total}
             style={{
               "--range-progress": `${((mode === "oneTime" ? oneTimeAmount - 1000 : total - sipMinimum) / ((mode === "oneTime" ? 300000 : sipMaximum) - (mode === "oneTime" ? 1000 : sipMinimum))) * 100}%`
-            } as React.CSSProperties}
+            } as CSSProperties}
             onChange={e => mode === "oneTime"
               ? setOneTimeAmount(Number(e.target.value))
               : setTotalAmount(Number(e.target.value))}
