@@ -563,7 +563,8 @@ export default function RiskProfilePrototype() {
           width: 360px;
           min-height: 880px;
           height: 880px;
-          overflow: hidden;
+          overflow-x: hidden;
+          overflow-y: auto;
           background: #fff;
           box-shadow: 0 10px 40px #0001;
         }
@@ -696,8 +697,7 @@ export default function RiskProfilePrototype() {
         }
         .risk-result {
           min-height: 100%;
-          padding: 44px 17px 22px;
-          overflow-y: auto;
+          padding: 44px 17px 40px;
         }
         .result-icon {
           width: 42px;
