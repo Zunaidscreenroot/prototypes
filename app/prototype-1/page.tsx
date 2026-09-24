@@ -113,10 +113,19 @@ export default function PrototypeOne() {
     const minimum = funds[key].min;
     let nextAmount = Math.max(0, current + delta);
 
-    // A fund can only move between 0 and its configured minimum/valid increments.
     if (current === 0 && delta > 0) nextAmount = minimum;
     if (current > 0 && nextAmount > 0 && nextAmount < minimum) nextAmount = minimum;
 
+    setFundAmounts(prev => ({ ...prev, [key]: nextAmount }));
+
+    const nextAmounts = { ...fundAmounts, [key]: nextAmount };
+    const nextTotal = Object.values(nextAmounts).reduce((sum, amount) => sum + amount, 0);
+    setBaseAmount(nextTotal);
+    setSipInput(String(nextTotal));
+  };
+
+  const setFundAmountDirect = (key: FundKey, value: number) => {
+    const nextAmount = Math.max(0, Math.min(sipMaximum, Math.round(value)));
     setFundAmounts(prev => ({ ...prev, [key]: nextAmount }));
 
     const nextAmounts = { ...fundAmounts, [key]: nextAmount };
@@ -314,7 +323,7 @@ export default function PrototypeOne() {
             minimum={funds.edelweiss.min}
             onMinus={() => adjustFund("edelweiss", -1)}
             onPlus={() => adjustFund("edelweiss", 1)}
-            onAmountChange={value => adjustFund("edelweiss", value - fundAmounts.edelweiss)}
+            onAmountChange={value => setFundAmountDirect("edelweiss", value)}
           />
           <FundCard
             title={funds.gold.title}
@@ -323,7 +332,7 @@ export default function PrototypeOne() {
             minimum={funds.gold.min}
             onMinus={() => adjustFund("gold", -1)}
             onPlus={() => adjustFund("gold", 1)}
-            onAmountChange={value => adjustFund("gold", value - fundAmounts.gold)}
+            onAmountChange={value => setFundAmountDirect("gold", value)}
           />
           <FundCard
             title={funds.silver.title}
@@ -332,7 +341,7 @@ export default function PrototypeOne() {
             minimum={funds.silver.min}
             onMinus={() => adjustFund("silver", -1)}
             onPlus={() => adjustFund("silver", 1)}
-            onAmountChange={value => adjustFund("silver", value - fundAmounts.silver)}
+            onAmountChange={value => setFundAmountDirect("silver", value)}
           />
         </section>
 
